@@ -8,6 +8,7 @@
 <title>دليل حضرات قطاع 10</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+[hidden]{display:none!important}
 :root{--g:#0f5132;--g2:#2a8a5a;--gold:#b8860b;--gold-l:#f6e27a;--bg:#f3f9f5;--card:#fff;--tx:#1d2a24;--mu:#5f7168;--bd:#d6e6db;--sh:0 2px 10px rgba(15,81,50,.08);color-scheme:light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
@@ -93,6 +94,9 @@ nav button.on svg{stroke:var(--gold)}
   <div class="wrap" style="padding-top:14px">
     <a class="btn" id="shareApp" target="_blank" rel="noopener">مشاركة التطبيق عبر واتساب</a>
     
+    <h2>تثبيت التطبيق</h2>
+    <button class="btn" id="install" hidden>تثبيت التطبيق على الموبايل</button>
+    <div class="note" id="installHelp">لوضع أيقونة التطبيق على شاشة الهاتف: في كروم اضغط قائمة النقاط الثلاث ثم «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية». وفي الآيفون افتح الرابط في سفاري، ثم زر المشاركة، ثم «إضافة إلى الشاشة الرئيسية».</div>
     <div id="adminBox" hidden><h2>إدارة الدليل</h2><button class="btn" id="addNew">إضافة حضرة جديدة</button><button class="btn o" id="logout">تسجيل خروج المشرف</button><p class="small">أي تعديل يظهر عند المستخدمين مباشرة.</p></div>
     <div id="loginBox" hidden><h2>دخول المشرفين</h2>
       <form id="lf" style="display:grid;gap:8px"><input id="l-email" type="email" dir="ltr" placeholder="البريد الإلكتروني" autocomplete="username" style="font:inherit;padding:12px;border:2px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx)"><input id="l-pass" type="password" dir="ltr" placeholder="كلمة المرور" autocomplete="current-password" style="font:inherit;padding:12px;border:2px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx)"><button class="btn" type="submit">دخول</button><div id="l-msg" class="note" hidden></div></form></div>
@@ -236,6 +240,10 @@ $('#logout').onclick=async()=>{await sb.auth.signOut();checkAdmin()};
 if(sb){load();checkAdmin();
   sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()})}
+let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('#install').hidden=false});
+$('#install').onclick=async()=>{if(dp){dp.prompt();dp=null;$('#install').hidden=true}};
+addEventListener('appinstalled',()=>{$('#install').hidden=true;$('#installHelp').hidden=true});
+if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('#installHelp').hidden=true;
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </div></body></html>
