@@ -5,7 +5,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>دليل الحضرات</title>
+<title>دليل حضرات قطاع 10</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--g:#0f5132;--g2:#17724a;--gold:#c9a227;--gold-l:#f6e27a;--bg:#f7f5ee;--card:#fff;--tx:#1d2a24;--mu:#6a766f;--bd:#e4e0d1;--sh:0 2px 10px rgba(15,81,50,.09)}
@@ -37,9 +37,11 @@ h2:before{content:"";width:6px;height:20px;background:var(--gold);border-radius:
 .badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .b{background:#eaf3ee;color:var(--g);border-radius:10px;padding:2px 10px;font-weight:700;font-size:15px}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b{background:#223329}}
-.b.t{background:#fbf3cf;color:#7a5f00}
-.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:8px;margin-top:10px}
-.acts a,.acts button{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--bd);background:var(--bg);color:var(--g);border-radius:12px;padding:8px 2px;font-size:13px;font-weight:700;text-decoration:none;min-height:56px;justify-content:center}
+.b.t{background:#e3f6ea;color:#1b9a5b}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .b.t{background:#1f3a2a;color:#6fe3a4}}
+:root[data-theme=dark] .b.t{background:#1f3a2a;color:#6fe3a4}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:6px;margin-top:10px}
+.acts a,.acts button{display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid var(--bd);background:var(--bg);color:var(--g);border-radius:12px;padding:8px 1px;font-size:12px;font-weight:700;text-decoration:none;min-height:56px;justify-content:center}
 .acts .call{background:var(--g);color:#fff;border-color:var(--g)}
 .acts .dis{opacity:.45;pointer-events:none}
 .acts .fav.on{color:#c0392b}
@@ -58,7 +60,7 @@ nav button.on svg{stroke:var(--gold)}
 .small{color:var(--mu);font-size:14px}
 .top{display:flex;align-items:center;justify-content:space-between}
 .mini{display:flex;align-items:center;gap:10px;background:var(--g);color:#fff;padding:12px 16px}
-.mini img{height:38px;filter:brightness(0) invert(1)}
+.mini img{height:42px}
 .mini b{font-size:19px}
 </style>
 </head><body><div id="app">
@@ -71,13 +73,14 @@ nav button.on svg{stroke:var(--gold)}
 <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
 <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21l-8.5-8.6a5.2 5.2 0 0 1 7.4-7.3L12 6.2l1.1-1.1a5.2 5.2 0 0 1 7.4 7.3z"/></symbol>
 <symbol id="i-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h.01M12 12h.01M19 12h.01"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></symbol>
 <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
 <symbol id="i-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></symbol>
 </svg>
 
 <main>
 <section class="page on" id="p-home">
-  <div class="mini"><img src="logo.png" alt=""><b>دليل الحضرات</b></div>
+  <div class="mini"><img src="logo-y.png" alt=""><b>دليل حضرات قطاع 10</b></div>
   <div class="wrap" style="padding-top:14px">
     <div class="search" style="margin-top:0"><input id="q2" type="search" placeholder="ابحث…" aria-label="بحث"></div>
     <div class="days" id="listDays"></div>
@@ -87,12 +90,12 @@ nav button.on svg{stroke:var(--gold)}
 </section>
 
 <section class="page" id="p-fav">
-  <div class="mini"><img src="logo.png" alt=""><b>المفضلة</b></div>
+  <div class="mini"><img src="logo-y.png" alt=""><b>المفضلة</b></div>
   <div class="wrap" style="padding-top:14px"><div id="favs"></div></div>
 </section>
 
 <section class="page" id="p-more">
-  <div class="mini"><img src="logo.png" alt=""><b>المزيد</b></div>
+  <div class="mini"><img src="logo-y.png" alt=""><b>المزيد</b></div>
   <div class="wrap" style="padding-top:14px">
     <a class="btn" id="shareApp" target="_blank" rel="noopener">مشاركة التطبيق عبر واتساب</a>
     
@@ -158,7 +161,8 @@ function cardHTML(it){
   <div class="acts">
     ${it.phone?`<a class="call" href="tel:${it.phone}"><svg width="22" height="22"><use href="#i-phone"/></svg>اتصال</a>`:''}
     ${dir?`<a href="${dir}" target="_blank" rel="noopener"><svg width="22" height="22"><use href="#i-nav"/></svg>الاتجاهات</a>`:''}
-    <a target="_blank" rel="noopener" href="${waLink(it)}"><svg width="22" height="22"><use href="#i-share"/></svg>واتساب</a>
+    ${it.phone?`<a target="_blank" rel="noopener" href="https://wa.me/20${it.phone.slice(1)}"><svg width="22" height="22"><use href="#i-chat"/></svg>واتساب</a>`:''}
+    <a target="_blank" rel="noopener" href="${waLink(it)}"><svg width="22" height="22"><use href="#i-share"/></svg>مشاركة</a>
     ${ADMIN?`<button data-edit="${it.id}"><svg width="22" height="22"><use href="#i-user"/></svg>تعديل</button>`:''}<button class="fav ${f?'on':''}" data-fav="${it.id}"><svg width="22" height="22" ${f?'style="fill:currentColor"':''}><use href="#i-heart"/></svg>${f?'في المفضلة':'مفضلة'}</button>
   </div></article>`}
 const list=(arr,el,empty='لا توجد نتائج')=>{el.innerHTML=arr.length?arr.map(cardHTML).join(''):`<div class="empty">${empty}</div>`};
@@ -169,10 +173,11 @@ function renderAll(){
   list(a,$('#all'));
   list(items.filter(i=>favs.includes(i.id)),$('#favs'),'لم تضف حضرات إلى المفضلة بعد. اضغط «مفضلة» في أي بطاقة.');
 }
+const cnt=n=>n===1?'حضرة واحدة':n===2?'حضرتان':n<=10?ar(n)+' حضرات':ar(n)+' حضرة';
 function dayChips(el,onPick,withAll){
   const counts=DAYS.map((_,i)=>items.filter(x=>x.day===i).length);
   el.innerHTML=(withAll?`<button class="chip ${dayF===null?'on':''}" data-d="">الكل<small>${ar(items.length)}</small></button>`:'')+
-   DAYS.map((d,i)=>counts[i]?`<button class="chip ${dayF===i?'on':''}" data-d="${i}">${d}<small>${ar(counts[i])} حضرة</small></button>`:'').join('');
+   DAYS.map((d,i)=>counts[i]?`<button class="chip ${dayF===i?'on':''}" data-d="${i}">${d}<small>${cnt(counts[i])}</small></button>`:'').join('');
   el.onclick=e=>{const b=e.target.closest('.chip');if(!b)return;onPick(b.dataset.d===''?null:+b.dataset.d)}
 }
 function refreshChips(){dayChips($('#listDays'),d=>{dayF=d;refreshChips();renderAll()},true)}
