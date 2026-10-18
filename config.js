@@ -1,0 +1,1 @@
+window.HADARAT_CONFIG={url:"https://skfembgcggidptkbqzhh.supabase.co",anonKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNrZmVtYmdjZ2dpZHB0a2JxemhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzE4NjMsImV4cCI6MjEwNzkwNzg2M30.MVzZn-C8cRgiUfJ4TTYbabR_BFcK7mbLcD6OwQeBuko"};
