@@ -98,6 +98,7 @@ nav button.on svg{stroke:var(--gold)}
     <button class="btn" id="install" hidden>تثبيت التطبيق على الموبايل</button>
     <div class="note" id="installHelp">لوضع أيقونة التطبيق على شاشة الهاتف: في كروم اضغط قائمة النقاط الثلاث ثم «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية». وفي الآيفون افتح الرابط في سفاري، ثم زر المشاركة، ثم «إضافة إلى الشاشة الرئيسية».</div>
     <div id="accBox" hidden><h2>حسابي</h2><div class="note" id="accInfo"></div><button class="btn o" id="logout">تسجيل الخروج</button></div>
+    <button class="btn o" id="adminLogin" data-gate="login" hidden>دخول المشرف</button>
     <div id="adminBox" hidden><h2>إدارة الدليل</h2><button class="btn" id="addNew">إضافة حضرة جديدة</button>
       <h2>وضع التطبيق</h2><div class="note" id="pubInfo"></div><button class="btn o" id="pubToggle">…</button>
       <h2>طلبات الانضمام <span class="b" id="pendN" hidden></span></h2><div id="reqs"></div></div>
@@ -135,7 +136,7 @@ nav button.on svg{stroke:var(--gold)}
       <input class="in" id="gl-pass" type="password" placeholder="كلمة المرور" dir="ltr" autocomplete="current-password" required>
       <button class="btn" type="submit">دخول</button></form>
     <div class="note" id="gl-msg" hidden></div>
-    <button class="btn o" data-gate="reg">رجوع</button>
+    <button class="btn o" data-gate="back">رجوع</button>
   </div>
   <div id="g-reg" class="gp" hidden>
     <p class="gsub">أرسل طلب انضمام، وسيراجعه المسؤول</p>
@@ -286,11 +287,11 @@ $('#f-del').onclick=async()=>{if($('#f-del').textContent!=='اضغط مرة أخ
 const normPhone=s=>(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
 const idToEmail=v=>{v=(v||'').trim();return v.includes('@')?v:normPhone(v)+'@hadarat.app'};
 const showMsg=(id,s)=>{const m=$(id);m.textContent=s;m.hidden=!s};
-function showGate(mode){$('#gate').hidden=false;['login','reg','pending','rejected','suspended','nocfg','wait'].forEach(k=>$('#g-'+k).hidden=k!==mode);
+function showGate(mode){$('#adminLogin').hidden=true;$('#gate').hidden=false;['login','reg','pending','rejected','suspended','nocfg','wait'].forEach(k=>$('#g-'+k).hidden=k!==mode);
   clearInterval(pollT);if(mode==='pending')pollT=setInterval(refresh,8000)}
 function hideGate(){$('#gate').hidden=true;clearInterval(pollT)}
 document.addEventListener('click',async e=>{const g=e.target.closest('[data-gate]');if(!g)return;
-  if(g.dataset.gate==='out')return doLogout();if(g.dataset.gate==='login'&&sb){tried=true;try{await sb.auth.signOut()}catch(_){}}showGate(g.dataset.gate)});
+  if(g.dataset.gate==='out')return doLogout();if(g.dataset.gate==='back')return refresh();if(g.dataset.gate==='login'&&sb){tried=true;try{await sb.auth.signOut()}catch(_){}}showGate(g.dataset.gate)});
 $('#gp-refresh').onclick=()=>refresh();
 $('#gl').onsubmit=async e=>{e.preventDefault();showMsg('#gl-msg','');
   const {error}=await sb.auth.signInWithPassword({email:idToEmail($('#gl-id').value),password:$('#gl-pass').value});
@@ -317,18 +318,19 @@ async function refresh(){
   try{
     const {data:{session}}=await sb.auth.getSession();
     if(!session){ADMIN=false;me=null;booted=false;if(!tried){tried=true;if(await autoLogin())return refresh()}
-      if(await getPub()){hideGate();$('#adminBox').hidden=true;$('#accBox').hidden=true;load();return}
+      if(await getPub()){hideGate();$('#adminBox').hidden=true;$('#accBox').hidden=true;$('#adminLogin').hidden=false;load();return}
       items=[];renderAll();showGate('reg');return}
     const a=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();if(a.error)throw a.error;
     ADMIN=!!a.data;
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
     me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');
-    if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();load()}else{booted=false;items=[];renderAll();showGate(st)}
+    if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();$('#adminLogin').hidden=false;load()}else{booted=false;items=[];renderAll();showGate(st)}
   }catch(err){
     let ok=false;try{ok=localStorage.getItem('hz-ok')==='1'&&JSON.parse(localStorage.getItem('hz-cache')||'null')}catch(_){}
     if(ok){hideGate();ADMIN=false;load()}else showGate('reg')}
 }
 function afterApproved(){
+  $('#adminLogin').hidden=true;
   try{localStorage.setItem('hz-ok','1')}catch(e){}
   $('#accBox').hidden=false;$('#logout').hidden=!ADMIN;$('#accInfo').textContent=me?('مسجّل باسم: '+me.name):'حساب مشرف';
   $('#adminBox').hidden=!ADMIN;
