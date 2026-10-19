@@ -349,7 +349,7 @@ const ST={pending:['قيد المراجعة','w'],approved:['مقبول',''],rej
 let reqs=[];
 async function loadReqs(){if(!ADMIN)return;const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
   reqs=(data||[]).filter(r=>r.name);renderReqs()}
-function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل حضرات قطاع 10». يمكنك الدخول الآن برقم الواتساب وكلمة المرور التي سجّلت بها.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل حضرات قطاع 10». للاستفسار تواصل معنا.`;
+function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل حضرات قطاع 10». افتح الرابط التالي من نفس الجهاز والمتصفح الذي سجّلت منه، وسيُفتح الدليل مباشرة.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل حضرات قطاع 10». للاستفسار تواصل معنا.`;
   return 'https://wa.me/20'+normPhone(r.phone).slice(1)+'?text='+encodeURIComponent(txt)}
 function renderReqs(){
   const pn=reqs.filter(r=>r.status==='pending').length;
