@@ -146,13 +146,13 @@ nav button.on svg{stroke:var(--gold)}
   </div>
   <div id="g-pending" class="gp" hidden>
     <div class="note">تم استلام طلبك، وهو قيد المراجعة. سيصلك إشعار على واتساب بعد الموافقة، وتتحول هذه الشاشة تلقائيًا إلى الدليل. أبقِ التطبيق مفتوحًا أو افتحه من نفس المتصفح لاحقًا.</div>
-    <button class="btn" id="gp-refresh">تحديث الآن</button>
+    <button class="btn" id="gp-refresh">تحديث الآن</button><button class="btn o" data-gate="login">دخول المشرف</button>
   </div>
   <div id="g-rejected" class="gp" hidden>
-    <div class="note">لم يُقبل طلبك. للاستفسار تواصل مع المسؤول.</div>
+    <div class="note">لم يُقبل طلبك. للاستفسار تواصل مع المسؤول.</div><button class="btn o" data-gate="login">دخول المشرف</button>
   </div>
   <div id="g-suspended" class="gp" hidden>
-    <div class="note">تم إيقاف حسابك. للاستفسار تواصل مع المسؤول.</div>
+    <div class="note">تم إيقاف حسابك. للاستفسار تواصل مع المسؤول.</div><button class="btn o" data-gate="login">دخول المشرف</button>
   </div>
   <div id="g-nocfg" class="gp" hidden><div class="note">التطبيق غير مهيّأ بعد. يرجى التواصل مع المسؤول.</div></div>
   <div id="g-wait" class="gp"><p class="gsub">جارٍ التحميل…</p></div>
@@ -289,7 +289,7 @@ function showGate(mode){$('#gate').hidden=false;['login','reg','pending','reject
   clearInterval(pollT);if(mode==='pending')pollT=setInterval(refresh,8000)}
 function hideGate(){$('#gate').hidden=true;clearInterval(pollT)}
 document.addEventListener('click',async e=>{const g=e.target.closest('[data-gate]');if(!g)return;
-  if(g.dataset.gate==='out')return doLogout();showGate(g.dataset.gate)});
+  if(g.dataset.gate==='out')return doLogout();if(g.dataset.gate==='login'&&sb){tried=true;try{await sb.auth.signOut()}catch(_){}}showGate(g.dataset.gate)});
 $('#gp-refresh').onclick=()=>refresh();
 $('#gl').onsubmit=async e=>{e.preventDefault();showMsg('#gl-msg','');
   const {error}=await sb.auth.signInWithPassword({email:idToEmail($('#gl-id').value),password:$('#gl-pass').value});
@@ -299,7 +299,7 @@ $('#gr').onsubmit=async e=>{e.preventDefault();showMsg('#gr-msg','');
   if(name.length<3)return showMsg('#gr-msg','اكتب اسمك الكامل.');
   if(!phoneOK(phone))return showMsg('#gr-msg','رقم الواتساب غير صحيح. اكتبه بصيغة 01XXXXXXXXX.');
   const {data,error}=await sb.auth.signUp({email:phone+'@hadarat.app',password:pw,options:{data:{name,phone}}});
-  if(error)return showMsg('#gr-msg',/registered|exists/i.test(error.message)?'هذا الرقم مسجَّل من قبل (ربما من جهاز آخر). تواصل مع المسؤول لإعادة تفعيله.':'تعذر إرسال الطلب. حاول لاحقًا.');
+  if(error)return showMsg('#gr-msg',/registered|exists/i.test(error.message)?'هذا الرقم مسجَّل من قبل (ربما من جهاز آخر). تواصل مع المسؤول لإعادة تفعيله.':'تعذر إرسال الطلب: '+(error.message||error.code||'خطأ غير معروف'));
   if(!data.session)return showMsg('#gr-msg','إعداد التطبيق غير مكتمل (تأكيد البريد مفعّل). يرجى إبلاغ المسؤول.');
   try{localStorage.setItem('hz-sec',pw);localStorage.setItem('hz-phone',phone)}catch(_){}
   refresh()};
