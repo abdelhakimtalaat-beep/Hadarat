@@ -99,6 +99,7 @@ nav button.on svg{stroke:var(--gold)}
     <div class="note" id="installHelp">لوضع أيقونة التطبيق على شاشة الهاتف: في كروم اضغط قائمة النقاط الثلاث ثم «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية». وفي الآيفون افتح الرابط في سفاري، ثم زر المشاركة، ثم «إضافة إلى الشاشة الرئيسية».</div>
     <div id="accBox" hidden><h2>حسابي</h2><div class="note" id="accInfo"></div><button class="btn o" id="logout">تسجيل الخروج</button></div>
     <div id="adminBox" hidden><h2>إدارة الدليل</h2><button class="btn" id="addNew">إضافة حضرة جديدة</button>
+      <h2>وضع التطبيق</h2><div class="note" id="pubInfo"></div><button class="btn o" id="pubToggle">…</button>
       <h2>طلبات الانضمام <span class="b" id="pendN" hidden></span></h2><div id="reqs"></div></div>
     <h2>ملاحظات</h2>
     <div class="note">يوجد سبع حضرات أو تجمعات لم تُسجَّل بياناتها بعد، وستُضاف لاحقًا بعد التواصل مع المسؤولين عنها.</div>
@@ -306,17 +307,23 @@ $('#gr').onsubmit=async e=>{e.preventDefault();showMsg('#gr-msg','');
 function newSecret(){const a=new Uint8Array(24);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('')}
 async function autoLogin(){let s,p;try{s=localStorage.getItem('hz-sec');p=localStorage.getItem('hz-phone')}catch(_){}
   if(!s||!p)return false;const {error}=await sb.auth.signInWithPassword({email:p+'@hadarat.app',password:s});return !error}
-let tried=false;
+let tried=false,watching=false;
+async function getPub(){try{const {data,error}=await sb.from('settings').select('value').eq('key','public_mode').maybeSingle();if(error)throw error;return !!data&&data.value==='on'}catch(e){return false}}
+function startWatch(){if(watching||!sb)return;watching=true;sb.channel('hs').on('postgres_changes',{event:'*',schema:'public',table:'settings'},()=>refresh()).subscribe()}
+async function showPub(){const p=await getPub();$('#pubInfo').textContent=p?'التطبيق الآن عام: يفتحه أي شخص معه الرابط دون تسجيل.':'التطبيق الآن خاص: يحتاج المريد إلى موافقتك.';$('#pubToggle').textContent=p?'العودة إلى الوضع الخاص':'جعل التطبيق عامًا مؤقتًا';$('#pubToggle').dataset.on=p?'1':'0'}
+$('#pubToggle').onclick=async()=>{const b=$('#pubToggle');b.disabled=true;const {error}=await sb.from('settings').update({value:b.dataset.on==='1'?'off':'on'}).eq('key','public_mode');b.disabled=false;if(error){$('#pubInfo').textContent='تعذر تغيير الوضع. تأكد من تشغيل public-mode.sql.';return}showPub()};
 async function refresh(){
   if(!sb){showGate('nocfg');return}
   try{
     const {data:{session}}=await sb.auth.getSession();
-    if(!session){ADMIN=false;me=null;booted=false;if(!tried){tried=true;if(await autoLogin())return refresh()}showGate('reg');return}
+    if(!session){ADMIN=false;me=null;booted=false;if(!tried){tried=true;if(await autoLogin())return refresh()}
+      if(await getPub()){hideGate();$('#adminBox').hidden=true;$('#accBox').hidden=true;load();return}
+      items=[];renderAll();showGate('reg');return}
     const a=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();if(a.error)throw a.error;
     ADMIN=!!a.data;
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
     me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');
-    if(st==='approved'){hideGate();afterApproved()}else{booted=false;showGate(st)}
+    if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();load()}else{booted=false;items=[];renderAll();showGate(st)}
   }catch(err){
     let ok=false;try{ok=localStorage.getItem('hz-ok')==='1'&&JSON.parse(localStorage.getItem('hz-cache')||'null')}catch(_){}
     if(ok){hideGate();ADMIN=false;load()}else showGate('reg')}
@@ -325,7 +332,7 @@ function afterApproved(){
   try{localStorage.setItem('hz-ok','1')}catch(e){}
   $('#accBox').hidden=false;$('#logout').hidden=!ADMIN;$('#accInfo').textContent=me?('مسجّل باسم: '+me.name):'حساب مشرف';
   $('#adminBox').hidden=!ADMIN;
-  load();if(ADMIN)loadReqs();
+  load();if(ADMIN){loadReqs();showPub()}
   if(!booted){booted=true;
     subs.push(sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe());
     if(ADMIN)subs.push(sb.channel('hq').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadReqs()).subscribe())}
@@ -367,7 +374,7 @@ document.addEventListener('click',async e=>{
     const {error}=await sb.rpc('admin_delete_user',{uid:del.dataset.del});if(!error)loadReqs();else del.textContent='تعذر الحذف'}
 });
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sb)refresh()});
-showGate('wait');refresh();
+showGate('wait');startWatch();refresh();
 let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('#install').hidden=false});
 $('#install').onclick=async()=>{if(dp){dp.prompt();dp=null;$('#install').hidden=true}};
 addEventListener('appinstalled',()=>{$('#install').hidden=true;$('#installHelp').hidden=true});
