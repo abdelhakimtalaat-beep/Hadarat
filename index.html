@@ -116,6 +116,7 @@ nav button.on svg{stroke:var(--gold)}
     <div class="search" style="margin:0 0 10px"><input id="dbq" type="search" placeholder="ابحث بالاسم أو الرقم أو الحضرة…" aria-label="بحث"></div>
     <select id="dbh" class="in" style="margin-bottom:10px"><option value="">كل الحضرات</option></select>
     <select id="dbs" class="in" style="margin-bottom:10px"></select>
+    <select id="dbst" class="in" style="margin-bottom:10px"><option value="">كل المراحل</option><option value="first">المرحلة الأولى</option><option value="second">المرحلة الثانية</option><option value="third">المرحلة الثالثة</option><option value="none">بلا مرحلة</option></select>
     <button class="btn" id="addPerson" hidden>إضافة شخص</button>
     <button class="btn o" id="exD" style="padding:10px">⬇ تصدير Excel / PDF</button>
     <p class="small" id="dbc"></p>
@@ -168,6 +169,7 @@ nav button.on svg{stroke:var(--gold)}
 <label>الرقم القومي<input id="p-nid" inputmode="numeric" dir="ltr"></label>
 <label>الموبايل<input id="p-phone" inputmode="tel" dir="ltr"></label>
 <label>الصفة<select id="p-role"><option value="">بلا صفة (مريد)</option><option value="deputy">نائب</option><option value="deputy_general">نائب عام</option></select></label>
+<label>المرحلة<select id="p-stage"><option value="">— فارغة —</option><option value="first">الأولى</option><option value="second">الثانية</option><option value="third">الثالثة</option></select></label>
 <label>الحضرة<select id="p-h"></select></label>
 <label>اسم الحضرة (إن لم تكن ضمن الدليل)<input id="p-ht"></label>
 <label>العنوان<textarea id="p-addr" rows="2"></textarea></label>
@@ -462,7 +464,7 @@ document.addEventListener('click',async e=>{
     const {error}=await sb.rpc('admin_delete_user',{uid:del.dataset.del});if(!error)loadReqs();else del.textContent='تعذر الحذف'}
 });
 // ===== قاعدة البيانات (للمشرف ومن يمنحه المشرف السماحية) =====
-let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbq='',dbh='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
+let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbst='',dbq='',dbh='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cntM=n=>n===1?'مريد واحد':n===2?'مريدان':n<=10?ar(n)+' مريدين':ar(n)+' مريدًا';
 const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ar');
@@ -476,6 +478,9 @@ const ageOf=p=>{if(!p.birth_date)return null;const b=new Date(p.birth_date+'T00:
 const isKid=p=>{const a=ageOf(p);return a!==null&&a<14};
 const byAge=(x,y)=>{const a=x.birth_date,b=y.birth_date;if(a&&b)return a<b?-1:a>b?1:byName(x,y);if(a)return -1;if(b)return 1;return byName(x,y)};
 const bySort=k=>k==='name'?byName:k==='count'?(x,y)=>(DC.get(y.id)||0)-(DC.get(x.id)||0)||byName(x,y):byAge;
+const STG={first:'الأولى',second:'الثانية',third:'الثالثة'};
+const stageL=p=>STG[p.stage]||'';
+const stageB=p=>p.stage?`<span class="b" style="background:#e9e2fb;color:#4b3a8f">المرحلة ${STG[p.stage]}</span>`:'';
 const roleB=p=>p.role==='deputy_general'?'<span class="b" style="background:var(--gold);color:#fff">نائب عام</span>':p.role==='deputy'?'<span class="b" style="background:#f6e27a;color:#6b4e00">نائب</span>':'';
 const roleN=p=>p.role==='deputy_general'?0:p.role==='deputy'?1:2;
 const KIDH='الأطفال (أقل من ١٤ سنة)',NOBH='بدون تاريخ ميلاد';
@@ -501,13 +506,14 @@ function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach
   s.innerHTML='<option value="">كل الحضرات</option>'+items.slice().sort(byName).filter(i=>cn.get(i.id)).map(i=>`<option value="${i.id}">${esc(i.name)} (${ar(cn.get(i.id))})</option>`).join('')+(cn.get(0)?`<option value="none">غير مرتبطة بحضرة (${ar(cn.get(0))})</option>`:'');s.value=v}
 function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p);
   return `<article class="card pc"><div class="pg"><div class="pgi"><h3><a class="lk" data-person="${p.id}">${esc(p.name)}</a></h3>
-  <div class="badges">${roleB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد | ${cntM(n)}</span>`:''}</div>
+  <div class="badges">${roleB(p)}${stageB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد | ${cntM(n)}</span>`:''}</div>
   <div class="row">${ic('home')}<span>${hLink(p)}</span></div>
   ${p.murshid_id?`<div class="row">${ic('user')}<span>المرشد: ${pLink(p.murshid_id)}</span></div>`:''}
   <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div></div>${av(p)}</div>
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</article>`}
 function dbList(){let a=people;
   if(dbv==='m')a=a.filter(p=>!p.role);else if(dbv==='s')a=a.filter(p=>DC.get(p.id)&&!p.role);else if(dbv==='d')a=a.filter(p=>p.role);
+  if(dbst==='none')a=a.filter(p=>!p.stage);else if(dbst)a=a.filter(p=>p.stage===dbst);
   if(dbh==='none')a=a.filter(p=>!p.hadra_id);else if(dbh)a=a.filter(p=>String(p.hadra_id)===dbh);
   if(dbq){const k=norm(dbq);a=a.filter(p=>norm([p.name,p.phone,hName(p),p.governorate,p.murshid_id&&PM.get(p.murshid_id)?.name].join(' ')).includes(k))}
   const cmp=bySort(dbs);return a.slice().sort(dbv==='d'?(x,y)=>roleN(x)-roleN(y)||cmp(x,y):cmp)}
@@ -517,6 +523,7 @@ function renderDb(){if(dbs==='count'&&dbv==='m')dbs='age';const a=dbList();$('#c
   $('#dbl').innerHTML=a.length?withGroups(a.slice(0,shown),personCard,dbs,a):'<div class="empty">لا توجد نتائج</div>';
   $('#dbmore').hidden=a.length<=shown;$('#dbmore').textContent=`عرض المزيد (${ar(a.length-shown)})`;
   $('#dbc').textContent=a.length?`عدد النتائج: ${ar(a.length)}`:'';applyPhotos($('#dbl'))}
+$('#dbst').onchange=e=>{dbst=e.target.value;shown=60;renderDb()};
 $('#dbs').onchange=e=>{dbs=e.target.value;shown=60;renderDb()};
 $('#dbq').addEventListener('input',e=>{dbq=e.target.value;shown=60;renderDb()});
 $('#dbh').onchange=e=>{dbh=e.target.value;shown=60;renderDb()};
@@ -529,7 +536,7 @@ function listLinks(arr,withH,grp=true){if(!arr.length)return '<div class="small"
   return `<div class="lst">${arr.map(p=>{let h='';if(grp){if(!kk&&isKid(p)){kk=true;h=`<div class="grp2">${KIDH}</div>`}if(!nn&&!p.birth_date){nn=true;h=`<div class="grp2">${NOBH}</div>`}}
   const a=ageOf(p);return h+`<div class="lr">${av(p)}<span><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${roleB(p)?' '+roleB(p):''}${a!==null?` <span class="small">· ${ar(a)} سنة</span>`:''}${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?`<br><span class="small">${hLink(p)}</span>`:''}</span></div>`}).join('')}</div>`}
 function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byAge),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
-  return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد | ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
+  return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${stageB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد | ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
   <div class="card">${kv('الحضرة',hLink(p))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
   ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
@@ -586,7 +593,7 @@ function cropImage(file){return new Promise(async(resolve,reject)=>{
 $('#p-rmph').onclick=()=>{pFile=null;pRm=true;$('#p-file').value='';$('#p-rmph').hidden=true;$('#p-recrop').hidden=true;pOrig=null;setPAv(null)};
 function openPed(p){pEd=p||null;$('#pedt').textContent=p?'تعديل بيانات':'إضافة شخص';
   $('#p-name').value=p?.name||'';$('#p-birth').value=p?.birth_date||'';$('#p-nid').value=p?.national_id||'';$('#p-phone').value=p?.phone||'';$('#p-gov').value=p?.governorate||'';
-  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';
+  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';$('#p-stage').value=p?.stage||'';
   $('#p-ht').value=p?.hadra_text||'';$('#p-addr').value=p?.address||'';$('#pm-q').value='';fillPm('',p?.murshid_id||null);
   pFile=null;pRm=false;$('#p-file').value='';$('#p-rmph').hidden=!p?.photo_path;$('#p-recrop').hidden=!p?.photo_path;pOrig=null;setPAv(p);$('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
 const closePed=()=>{$('#ped').hidden=true};
@@ -596,7 +603,7 @@ const pmsg=s=>{const m=$('#p-msg');m.textContent=s;m.hidden=false};
 $('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;
   const hv=$('#p-h').value,ph=$('#p-phone').value.replace(/\D/g,'');
   const row={name:$('#p-name').value.trim().replace(/\s+/g,' '),birth_date:$('#p-birth').value||null,national_id:$('#p-nid').value.replace(/\D/g,'')||null,phone:ph||null,governorate:$('#p-gov').value.trim()||null,
-    role:$('#p-role').value||null,hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
+    role:$('#p-role').value||null,stage:$('#p-stage').value||null,hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
   if(!row.name)return pmsg('اكتب الاسم.');
   let pid=pEd?.id,r;
   if(pEd)r=await sb.from('people').update(row).eq('id',pid);else{r=await sb.from('people').insert(row).select('id').single();pid=r.data?.id}
@@ -632,10 +639,10 @@ function exData(){const all=$('#ex-sc-all').checked;
       rows:L.map((it,i)=>[i+1,it.name,it.dayName,fmt(it.time),it.dar||'',it.address||'',it.manager||'',it.phone||'',it.map||''])}}
   const L=all?allPeople():dbList();
   return {title:'دليل قطاع 10 — قاعدة البيانات',sheet:'قاعدة البيانات',file:'قاعدة-البيانات',land:true,
-    cols:[['م',5],['الاسم',28],['النوع',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12]],
-    pdfCols:[0,1,2,3,7,9,11,8],
+    cols:[['م',5],['الاسم',28],['النوع',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12]],
+    pdfCols:[0,1,2,3,4,8,10,12,9],
     rows:L.map((p,i)=>{const a=ageOf(p),m=p.murshid_id&&PM.get(p.murshid_id);
-      return [i+1,p.name,typeOf(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0]})}}
+      return [i+1,p.name,typeOf(p),stageL(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0]})}}
 function loadScript(src){return new Promise((ok,no)=>{if(window.ExcelJS)return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load'));document.head.appendChild(s)})}
 async function exportXlsx(){const d=exData();if(!d.rows.length)return exMsg('لا توجد بيانات لتصديرها.');exMsg('جارٍ تجهيز ملف Excel…');
   try{await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js')}catch(e){return exportCsv(d)}
