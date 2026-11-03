@@ -114,6 +114,7 @@ nav button.on svg{stroke:var(--gold)}
     <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button></div>
     <div class="search" style="margin:0 0 10px"><input id="dbq" type="search" placeholder="ابحث بالاسم أو الرقم أو الحضرة…" aria-label="بحث"></div>
     <select id="dbh" class="in" style="margin-bottom:10px"><option value="">كل الحضرات</option></select>
+    <select id="dbs" class="in" style="margin-bottom:10px"></select>
     <button class="btn" id="addPerson" hidden>إضافة شخص</button>
     <p class="small" id="dbc"></p>
     <div id="dbl"></div><button class="btn o" id="dbmore" hidden>عرض المزيد</button>
@@ -150,6 +151,7 @@ nav button.on svg{stroke:var(--gold)}
 <div id="ped" hidden style="position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
 <form id="pedf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
 <h2 id="pedt" style="margin:0">تعديل بيانات</h2>
+<div class="pch"><span class="av lg" id="p-av"><svg width="44" height="44"><use href="#i-user"/></svg></span><div class="pcb"><b>الصورة الشخصية</b><input id="p-file" type="file" accept="image/*" style="margin-top:6px;width:100%"><button class="btn o" type="button" id="p-rmph" hidden style="padding:6px;margin:6px 0 0;font-size:14px">حذف الصورة</button></div></div>
 <label>الاسم<input id="p-name" required></label>
 <div class="two"><label>تاريخ الميلاد<input id="p-birth" type="date"></label><label>المحافظة<input id="p-gov"></label></div>
 <label>الرقم القومي<input id="p-nid" inputmode="numeric" dir="ltr"></label>
@@ -174,6 +176,11 @@ nav button.on svg{stroke:var(--gold)}
 .kv{display:flex;gap:10px;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd)}.kv:last-of-type{border:0}.kv span{color:var(--mu);flex:0 0 auto}.kv b{font-weight:600;text-align:left}
 .lst{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:4px 14px}.lst>div{padding:8px 0;border-bottom:1px solid var(--bd)}.lst>div:last-child{border:0}
 #sh[hidden],#ped[hidden]{display:none!important}
+.av{flex:0 0 auto;width:60px;height:60px;border-radius:50%;background:#e0efe6;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--g);overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;display:block}.av.lg{width:96px;height:96px}
+.pch{display:flex;gap:12px;align-items:center}.pcb{flex:1;min-width:0}.pcb h3{margin:0 0 4px}
+.pc .row{margin-top:8px}.grp{font-size:18px;font-weight:800;color:var(--g);margin:18px 0 8px;padding:6px 12px;background:#e4f3ea;border-radius:12px;border-right:5px solid var(--gold)}
+.grp2{font-weight:800;color:var(--g);padding:8px 0 2px}.lr{display:flex;gap:10px;align-items:center}.lr .av{width:44px;height:44px}.lr .av svg{width:22px;height:22px}
 </style>
 <div id="gate" hidden>
  <div class="gbox">
@@ -434,7 +441,7 @@ document.addEventListener('click',async e=>{
     const {error}=await sb.rpc('admin_delete_user',{uid:del.dataset.del});if(!error)loadReqs();else del.textContent='تعذر الحذف'}
 });
 // ===== قاعدة البيانات (للمشرف ومن يمنحه المشرف السماحية) =====
-let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbq='',dbh='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
+let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbq='',dbh='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cntM=n=>n===1?'مريد واحد':n===2?'مريدان':n<=10?ar(n)+' مريدين':ar(n)+' مريدًا';
 const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ar');
@@ -444,6 +451,19 @@ const hLink=p=>{const h=hItem(p);return h?`<a class="lk" data-hadra="${h.id}">${
 const pLink=id=>{const p=PM.get(id);return p?`<a class="lk" data-person="${id}">${esc(p.name)}</a>`:'—'};
 const pPhone=p=>p.phone?`<bdi dir="ltr">${esc(p.phone)}</bdi>${phoneOK(p.phone)?'':' <span class="small">(الرقم يحتاج مراجعة)</span>'}`:'—';
 const ic=n=>`<svg width="20" height="20"><use href="#i-${n}"/></svg>`;
+const ageOf=p=>{if(!p.birth_date)return null;const b=new Date(p.birth_date+'T00:00:00'),n=new Date();let a=n.getFullYear()-b.getFullYear();if(n<new Date(n.getFullYear(),b.getMonth(),b.getDate()))a--;return a};
+const isKid=p=>{const a=ageOf(p);return a!==null&&a<14};
+const byAge=(x,y)=>{const a=x.birth_date,b=y.birth_date;if(a&&b)return a<b?-1:a>b?1:byName(x,y);if(a)return -1;if(b)return 1;return byName(x,y)};
+const bySort=k=>k==='name'?byName:k==='count'?(x,y)=>(DC.get(y.id)||0)-(DC.get(x.id)||0)||byName(x,y):byAge;
+const KIDH='الأطفال (أقل من ١٤ سنة)',NOBH='بدون تاريخ ميلاد';
+const av=(p,big)=>`<span class="av${big?' lg':''}"${p.photo_path?` data-pp="${esc(p.photo_path)}"`:''}><svg width="${big?44:30}" height="${big?44:30}"><use href="#i-user"/></svg></span>`;
+const PU=new Map();
+async function applyPhotos(root=document){const els=[...root.querySelectorAll('[data-pp]')];if(!els.length||!sb)return;const now=Date.now();
+  const need=[...new Set(els.map(e=>e.dataset.pp))].filter(p=>!PU.get(p)||now-PU.get(p).t>3000000);
+  if(need.length){try{const {data}=await sb.storage.from('people-photos').createSignedUrls(need,3600);(data||[]).forEach(d=>{if(d.signedUrl)PU.set(d.path,{url:d.signedUrl,t:now})})}catch(e){}}
+  els.forEach(e=>{const u=PU.get(e.dataset.pp);if(u&&!e.querySelector('img'))e.innerHTML=`<img src="${u.url}" alt="">`})}
+function withGroups(a,render,key,all){all=all||a;let out='',kk=false,nn=false;const kn=all.filter(isKid).length,nd=all.filter(p=>!p.birth_date).length;
+  for(const p of a){if(key==='age'){if(!kk&&isKid(p)){kk=true;out+=`<div class="grp">${KIDH} · ${ar(kn)}</div>`}if(!nn&&!p.birth_date){nn=true;out+=`<div class="grp">${NOBH} · ${ar(nd)}</div>`}}out+=render(p)}return out}
 function setAccess(){
   CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&me.can_db));
   $('#nav-db').hidden=!CAN_DB;$('#nav-admin').hidden=!ADMIN;$('#adminBox').hidden=!ADMIN;
@@ -456,9 +476,9 @@ async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
   dbHadraOpts();renderDb();if(!$('#sh').hidden)renderSheet()}
 function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach(p=>cn.set(p.hadra_id||0,(cn.get(p.hadra_id||0)||0)+1));
   s.innerHTML='<option value="">كل الحضرات</option>'+items.slice().sort(byName).filter(i=>cn.get(i.id)).map(i=>`<option value="${i.id}">${esc(i.name)} (${ar(cn.get(i.id))})</option>`).join('')+(cn.get(0)?`<option value="none">غير مرتبطة بحضرة (${ar(cn.get(0))})</option>`:'');s.value=v}
-function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0;
-  return `<article class="card pc"><h3><a class="lk" data-person="${p.id}">${esc(p.name)}</a></h3>
-  ${n?`<div class="badges"><span class="b">مرشد · ${cntM(n)}</span></div>`:''}
+function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p);
+  return `<article class="card pc"><div class="pch">${av(p)}<div class="pcb"><h3><a class="lk" data-person="${p.id}">${esc(p.name)}</a></h3>
+  <div class="badges">${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد · ${cntM(n)}</span>`:''}</div></div></div>
   <div class="row">${ic('home')}<span>${hLink(p)}</span></div>
   ${p.murshid_id?`<div class="row">${ic('user')}<span>المرشد: ${pLink(p.murshid_id)}</span></div>`:''}
   <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div>
@@ -467,12 +487,14 @@ function dbList(){let a=people;
   if(dbv==='s')a=a.filter(p=>DC.get(p.id));
   if(dbh==='none')a=a.filter(p=>!p.hadra_id);else if(dbh)a=a.filter(p=>String(p.hadra_id)===dbh);
   if(dbq){const k=norm(dbq);a=a.filter(p=>norm([p.name,p.phone,hName(p),p.governorate,p.murshid_id&&PM.get(p.murshid_id)?.name].join(' ')).includes(k))}
-  return dbv==='s'?a.slice().sort((x,y)=>(DC.get(y.id)||0)-(DC.get(x.id)||0)||byName(x,y)):a.slice().sort(byName)}
-function renderDb(){const a=dbList();$('#cm').textContent=ar(people.length);$('#cs').textContent=ar(DC.size);
+  return a.slice().sort(bySort(dbs))}
+function renderDb(){if(dbs==='count'&&dbv!=='s')dbs='age';const a=dbList();$('#cm').textContent=ar(people.length);$('#cs').textContent=ar(DC.size);
   document.querySelectorAll('[data-dbv]').forEach(b=>b.classList.toggle('on',b.dataset.dbv===dbv));
-  $('#dbl').innerHTML=a.length?a.slice(0,shown).map(personCard).join(''):'<div class="empty">لا توجد نتائج</div>';
+  $('#dbs').innerHTML='<option value="age">الترتيب: الأكبر سنًا أولًا</option><option value="name">الترتيب: حسب الاسم</option>'+(dbv==='s'?'<option value="count">الترتيب: الأكثر مريدين</option>':'');$('#dbs').value=dbs;
+  $('#dbl').innerHTML=a.length?withGroups(a.slice(0,shown),personCard,dbs,a):'<div class="empty">لا توجد نتائج</div>';
   $('#dbmore').hidden=a.length<=shown;$('#dbmore').textContent=`عرض المزيد (${ar(a.length-shown)})`;
-  $('#dbc').textContent=a.length?`عدد النتائج: ${ar(a.length)}`:''}
+  $('#dbc').textContent=a.length?`عدد النتائج: ${ar(a.length)}`:'';applyPhotos($('#dbl'))}
+$('#dbs').onchange=e=>{dbs=e.target.value;shown=60;renderDb()};
 $('#dbq').addEventListener('input',e=>{dbq=e.target.value;shown=60;renderDb()});
 $('#dbh').onchange=e=>{dbh=e.target.value;shown=60;renderDb()};
 $('#dbmore').onclick=()=>{shown+=60;renderDb()};
@@ -480,19 +502,21 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-dbv]');if(
 // ----- النافذة المنبثقة (حضرة / شخص) مع الربط بين الأسماء -----
 const kv=(l,v)=>v?`<div class="kv"><span>${l}</span><b>${v}</b></div>`:'';
 const dt=s=>s?new Date(s+'T00:00:00').toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}):'';
-function listLinks(arr,withH){return arr.length?`<div class="lst">${arr.map(p=>`<div><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?` <span class="small">· ${hLink(p)}</span>`:''}</div>`).join('')}</div>`:'<div class="small">—</div>'}
-function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byName),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
-  return `<h2 class="shh">${esc(p.name)}</h2>${kids.length?`<div class="badges"><span class="b">مرشد · ${cntM(kids.length)}</span></div>`:''}
+function listLinks(arr,withH,grp=true){if(!arr.length)return '<div class="small">—</div>';let kk=false,nn=false;
+  return `<div class="lst">${arr.map(p=>{let h='';if(grp){if(!kk&&isKid(p)){kk=true;h=`<div class="grp2">${KIDH}</div>`}if(!nn&&!p.birth_date){nn=true;h=`<div class="grp2">${NOBH}</div>`}}
+  const a=ageOf(p);return h+`<div class="lr">${av(p)}<span><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${a!==null?` <span class="small">· ${ar(a)} سنة</span>`:''}${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?`<br><span class="small">${hLink(p)}</span>`:''}</span></div>`}).join('')}</div>`}
+function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byAge),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
+  return `<div class="pch" style="margin-top:12px">${av(p,true)}<div class="pcb"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد · ${cntM(kids.length)}</span>`:''}</div></div></div>
   <div class="card">${kv('الحضرة',hLink(p))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
   ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
   ${kids.length?`<h2>المريدون (${ar(kids.length)})</h2>${listLinks(kids,true)}`:''}`}
 function sheetHadra(it){const ppl=people.filter(p=>p.hadra_id===it.id),ms=ppl.filter(p=>DC.get(p.id)).sort((a,b)=>DC.get(b.id)-DC.get(a.id));
-  return `${cardHTML(it)}${CAN_DB?`<h2>المرشدون في هذه الحضرة (${ar(ms.length)})</h2>${listLinks(ms,false)}<h2>المريدون في هذه الحضرة (${ar(ppl.length)})</h2>${listLinks(ppl.slice().sort(byName),false)}`:''}`}
+  return `${cardHTML(it)}${CAN_DB?`<h2>المرشدون في هذه الحضرة (${ar(ms.length)})</h2>${listLinks(ms,false,false)}<h2>المريدون في هذه الحضرة (${ar(ppl.length)})</h2>${listLinks(ppl.slice().sort(byAge),false)}`:''}`}
 function renderSheet(){const c=shCur;if(!c)return;let h='';
   if(c.t==='h'){const it=items.find(i=>i.id===c.id);h=it?sheetHadra(it):'<div class="empty">غير موجودة</div>'}
   else{const p=PM.get(c.id);h=p?sheetPerson(p):'<div class="empty">غير موجود</div>'}
-  $('#shbody').innerHTML=h;$('#shback').hidden=!shStack.length}
+  $('#shbody').innerHTML=h;applyPhotos($('#shbody'));$('#shback').hidden=!shStack.length}
 function openSheet(t,id,push=true){if(push&&shCur)shStack.push(shCur);shCur={t,id};$('#sh').hidden=false;renderSheet();$('#shbody').scrollTop=0;document.body.style.overflow='hidden'}
 function closeSheet(){shStack=[];shCur=null;$('#sh').hidden=true;document.body.style.overflow=''}
 $('#shback').onclick=()=>{shCur=shStack.pop()||null;if(!shCur)return closeSheet();renderSheet()};
@@ -506,11 +530,17 @@ function fillPm(q,sel){const k=norm(q||''),s=$('#pm');
   let a=people.filter(p=>(!pEd||p.id!==pEd.id)&&(!k||norm(p.name+' '+(p.phone||'')).includes(k))).sort(byName).slice(0,60);
   if(sel&&!a.find(p=>p.id===sel)&&PM.get(sel))a.unshift(PM.get(sel));
   s.innerHTML='<option value="">بلا مرشد</option>'+a.map(p=>`<option value="${p.id}">${esc(p.name)}${p.phone?' · '+p.phone:''}</option>`).join('');s.value=sel||''}
+let pFile=null,pRm=false;
+function setPAv(p,blobUrl){const e=$('#p-av');if(blobUrl){e.innerHTML=`<img src="${blobUrl}" alt="">`;return}
+  e.innerHTML='<svg width="44" height="44"><use href="#i-user"/></svg>';if(p&&p.photo_path&&!pRm){e.dataset.pp=p.photo_path;applyPhotos($('#pedf'))}else delete e.dataset.pp}
+async function shrink(file,max=480){const bmp=await createImageBitmap(file);const s=Math.min(1,max/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*s);c.height=Math.round(bmp.height*s);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(r,'image/jpeg',0.82))}
+$('#p-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{pFile=await shrink(f);pRm=false;setPAv(null,URL.createObjectURL(pFile));$('#p-rmph').hidden=false}catch(_){pmsg('تعذر قراءة الصورة.')}};
+$('#p-rmph').onclick=()=>{pFile=null;pRm=true;$('#p-file').value='';$('#p-rmph').hidden=true;setPAv(null)};
 function openPed(p){pEd=p||null;$('#pedt').textContent=p?'تعديل بيانات':'إضافة شخص';
   $('#p-name').value=p?.name||'';$('#p-birth').value=p?.birth_date||'';$('#p-nid').value=p?.national_id||'';$('#p-phone').value=p?.phone||'';$('#p-gov').value=p?.governorate||'';
   $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';
   $('#p-ht').value=p?.hadra_text||'';$('#p-addr').value=p?.address||'';$('#pm-q').value='';fillPm('',p?.murshid_id||null);
-  $('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
+  pFile=null;pRm=false;$('#p-file').value='';$('#p-rmph').hidden=!p?.photo_path;setPAv(p);$('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
 const closePed=()=>{$('#ped').hidden=true};
 $('#p-cancel').onclick=closePed;$('#addPerson').onclick=()=>openPed(null);
 $('#pm-q').addEventListener('input',e=>fillPm(e.target.value,+$('#pm').value||null));
@@ -520,8 +550,16 @@ $('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;
   const row={name:$('#p-name').value.trim().replace(/\s+/g,' '),birth_date:$('#p-birth').value||null,national_id:$('#p-nid').value.replace(/\D/g,'')||null,phone:ph||null,governorate:$('#p-gov').value.trim()||null,
     hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
   if(!row.name)return pmsg('اكتب الاسم.');
-  const r=pEd?await sb.from('people').update(row).eq('id',pEd.id):await sb.from('people').insert(row);
-  if(r.error)return pmsg('تعذر الحفظ: '+r.error.message);closePed();loadPeople()};
+  let pid=pEd?.id,r;
+  if(pEd)r=await sb.from('people').update(row).eq('id',pid);else{r=await sb.from('people').insert(row).select('id').single();pid=r.data?.id}
+  if(r.error)return pmsg('تعذر الحفظ: '+r.error.message);
+  if(!pEd)pEd={...row,id:pid};
+  if(pFile||pRm){const old=pEd.photo_path||null;let np=null;
+    if(pFile){np=pid+'-'+Date.now()+'.jpg';const u=await sb.storage.from('people-photos').upload(np,pFile,{contentType:'image/jpeg'});
+      if(u.error){loadPeople();return pmsg('حُفظت البيانات لكن تعذر رفع الصورة: '+u.error.message+' (تأكد من تشغيل photos.sql)')}}
+    const u2=await sb.from('people').update({photo_path:np}).eq('id',pid);if(u2.error)return pmsg('تعذر حفظ الصورة: '+u2.error.message);
+    if(old){try{await sb.storage.from('people-photos').remove([old])}catch(_){}}}
+  closePed();loadPeople()};
 $('#p-del').onclick=async()=>{if($('#p-del').textContent!=='اضغط مرة أخرى لتأكيد الحذف'){$('#p-del').textContent='اضغط مرة أخرى لتأكيد الحذف';return}
   const r=await sb.from('people').delete().eq('id',pEd.id);if(r.error)return pmsg('تعذر الحذف: '+r.error.message);closePed();closeSheet();loadPeople()};
 $('#rq').addEventListener('input',e=>{rqQ=e.target.value;renderReqs()});
