@@ -111,7 +111,7 @@ nav button.on svg{stroke:var(--gold)}
 <section class="page" id="p-db">
   <div class="mini"><img src="logo-y.png" alt=""><b>قاعدة البيانات</b></div>
   <div class="wrap" style="padding-top:14px">
-    <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button></div>
+    <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button><button class="chip" data-dbv="d">النواب<small id="cd"></small></button></div>
     <div class="search" style="margin:0 0 10px"><input id="dbq" type="search" placeholder="ابحث بالاسم أو الرقم أو الحضرة…" aria-label="بحث"></div>
     <select id="dbh" class="in" style="margin-bottom:10px"><option value="">كل الحضرات</option></select>
     <select id="dbs" class="in" style="margin-bottom:10px"></select>
@@ -158,6 +158,7 @@ nav button.on svg{stroke:var(--gold)}
 <div class="two"><label>تاريخ الميلاد<input id="p-birth" type="date"></label><label>المحافظة<input id="p-gov"></label></div>
 <label>الرقم القومي<input id="p-nid" inputmode="numeric" dir="ltr"></label>
 <label>الموبايل<input id="p-phone" inputmode="tel" dir="ltr"></label>
+<label>الصفة<select id="p-role"><option value="">بلا صفة (مريد)</option><option value="deputy">نائب</option><option value="deputy_general">نائب عام</option></select></label>
 <label>الحضرة<select id="p-h"></select></label>
 <label>اسم الحضرة (إن لم تكن ضمن الدليل)<input id="p-ht"></label>
 <label>العنوان<textarea id="p-addr" rows="2"></textarea></label>
@@ -462,6 +463,8 @@ const ageOf=p=>{if(!p.birth_date)return null;const b=new Date(p.birth_date+'T00:
 const isKid=p=>{const a=ageOf(p);return a!==null&&a<14};
 const byAge=(x,y)=>{const a=x.birth_date,b=y.birth_date;if(a&&b)return a<b?-1:a>b?1:byName(x,y);if(a)return -1;if(b)return 1;return byName(x,y)};
 const bySort=k=>k==='name'?byName:k==='count'?(x,y)=>(DC.get(y.id)||0)-(DC.get(x.id)||0)||byName(x,y):byAge;
+const roleB=p=>p.role==='deputy_general'?'<span class="b" style="background:var(--gold);color:#fff">نائب عام</span>':p.role==='deputy'?'<span class="b" style="background:#f6e27a;color:#6b4e00">نائب</span>':'';
+const roleN=p=>p.role==='deputy_general'?0:p.role==='deputy'?1:2;
 const KIDH='الأطفال (أقل من ١٤ سنة)',NOBH='بدون تاريخ ميلاد';
 const av=(p,big)=>`<span class="av${big?' lg':''}"${p.photo_path?` data-pp="${esc(p.photo_path)}"`:''}><svg width="${big?44:30}" height="${big?44:30}"><use href="#i-user"/></svg></span>`;
 const PU=new Map();
@@ -485,19 +488,19 @@ function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach
   s.innerHTML='<option value="">كل الحضرات</option>'+items.slice().sort(byName).filter(i=>cn.get(i.id)).map(i=>`<option value="${i.id}">${esc(i.name)} (${ar(cn.get(i.id))})</option>`).join('')+(cn.get(0)?`<option value="none">غير مرتبطة بحضرة (${ar(cn.get(0))})</option>`:'');s.value=v}
 function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p);
   return `<article class="card pc"><div class="pg"><div class="pgi"><h3><a class="lk" data-person="${p.id}">${esc(p.name)}</a></h3>
-  <div class="badges">${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد · ${cntM(n)}</span>`:''}</div>
+  <div class="badges">${roleB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد · ${cntM(n)}</span>`:''}</div>
   <div class="row">${ic('home')}<span>${hLink(p)}</span></div>
   ${p.murshid_id?`<div class="row">${ic('user')}<span>المرشد: ${pLink(p.murshid_id)}</span></div>`:''}
   <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div></div>${av(p)}</div>
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</article>`}
 function dbList(){let a=people;
-  if(dbv==='s')a=a.filter(p=>DC.get(p.id));
+  if(dbv==='m')a=a.filter(p=>!p.role);else if(dbv==='s')a=a.filter(p=>DC.get(p.id)&&!p.role);else if(dbv==='d')a=a.filter(p=>p.role);
   if(dbh==='none')a=a.filter(p=>!p.hadra_id);else if(dbh)a=a.filter(p=>String(p.hadra_id)===dbh);
   if(dbq){const k=norm(dbq);a=a.filter(p=>norm([p.name,p.phone,hName(p),p.governorate,p.murshid_id&&PM.get(p.murshid_id)?.name].join(' ')).includes(k))}
-  return a.slice().sort(bySort(dbs))}
-function renderDb(){if(dbs==='count'&&dbv!=='s')dbs='age';const a=dbList();$('#cm').textContent=ar(people.length);$('#cs').textContent=ar(DC.size);
+  const cmp=bySort(dbs);return a.slice().sort(dbv==='d'?(x,y)=>roleN(x)-roleN(y)||cmp(x,y):cmp)}
+function renderDb(){if(dbs==='count'&&dbv==='m')dbs='age';const a=dbList();$('#cm').textContent=ar(people.filter(p=>!p.role).length);$('#cs').textContent=ar(people.filter(p=>DC.get(p.id)&&!p.role).length);$('#cd').textContent=ar(people.filter(p=>p.role).length);
   document.querySelectorAll('[data-dbv]').forEach(b=>b.classList.toggle('on',b.dataset.dbv===dbv));
-  $('#dbs').innerHTML='<option value="age">الترتيب: الأكبر سنًا أولًا</option><option value="name">الترتيب: حسب الاسم</option>'+(dbv==='s'?'<option value="count">الترتيب: الأكثر مريدين</option>':'');$('#dbs').value=dbs;
+  $('#dbs').innerHTML='<option value="age">الترتيب: الأكبر سنًا أولًا</option><option value="name">الترتيب: حسب الاسم</option>'+(dbv!=='m'?'<option value="count">الترتيب: الأكثر مريدين</option>':'');$('#dbs').value=dbs;
   $('#dbl').innerHTML=a.length?withGroups(a.slice(0,shown),personCard,dbs,a):'<div class="empty">لا توجد نتائج</div>';
   $('#dbmore').hidden=a.length<=shown;$('#dbmore').textContent=`عرض المزيد (${ar(a.length-shown)})`;
   $('#dbc').textContent=a.length?`عدد النتائج: ${ar(a.length)}`:'';applyPhotos($('#dbl'))}
@@ -511,9 +514,9 @@ const kv=(l,v)=>v?`<div class="kv"><span>${l}</span><b>${v}</b></div>`:'';
 const dt=s=>s?new Date(s+'T00:00:00').toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}):'';
 function listLinks(arr,withH,grp=true){if(!arr.length)return '<div class="small">—</div>';let kk=false,nn=false;
   return `<div class="lst">${arr.map(p=>{let h='';if(grp){if(!kk&&isKid(p)){kk=true;h=`<div class="grp2">${KIDH}</div>`}if(!nn&&!p.birth_date){nn=true;h=`<div class="grp2">${NOBH}</div>`}}
-  const a=ageOf(p);return h+`<div class="lr">${av(p)}<span><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${a!==null?` <span class="small">· ${ar(a)} سنة</span>`:''}${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?`<br><span class="small">${hLink(p)}</span>`:''}</span></div>`}).join('')}</div>`}
+  const a=ageOf(p);return h+`<div class="lr">${av(p)}<span><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${roleB(p)?' '+roleB(p):''}${a!==null?` <span class="small">· ${ar(a)} سنة</span>`:''}${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?`<br><span class="small">${hLink(p)}</span>`:''}</span></div>`}).join('')}</div>`}
 function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byAge),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
-  return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد · ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
+  return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد · ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
   <div class="card">${kv('الحضرة',hLink(p))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
   ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
@@ -570,7 +573,7 @@ function cropImage(file){return new Promise(async(resolve,reject)=>{
 $('#p-rmph').onclick=()=>{pFile=null;pRm=true;$('#p-file').value='';$('#p-rmph').hidden=true;$('#p-recrop').hidden=true;pOrig=null;setPAv(null)};
 function openPed(p){pEd=p||null;$('#pedt').textContent=p?'تعديل بيانات':'إضافة شخص';
   $('#p-name').value=p?.name||'';$('#p-birth').value=p?.birth_date||'';$('#p-nid').value=p?.national_id||'';$('#p-phone').value=p?.phone||'';$('#p-gov').value=p?.governorate||'';
-  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';
+  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';
   $('#p-ht').value=p?.hadra_text||'';$('#p-addr').value=p?.address||'';$('#pm-q').value='';fillPm('',p?.murshid_id||null);
   pFile=null;pRm=false;$('#p-file').value='';$('#p-rmph').hidden=!p?.photo_path;$('#p-recrop').hidden=!p?.photo_path;pOrig=null;setPAv(p);$('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
 const closePed=()=>{$('#ped').hidden=true};
@@ -580,7 +583,7 @@ const pmsg=s=>{const m=$('#p-msg');m.textContent=s;m.hidden=false};
 $('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;
   const hv=$('#p-h').value,ph=$('#p-phone').value.replace(/\D/g,'');
   const row={name:$('#p-name').value.trim().replace(/\s+/g,' '),birth_date:$('#p-birth').value||null,national_id:$('#p-nid').value.replace(/\D/g,'')||null,phone:ph||null,governorate:$('#p-gov').value.trim()||null,
-    hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
+    role:$('#p-role').value||null,hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
   if(!row.name)return pmsg('اكتب الاسم.');
   let pid=pEd?.id,r;
   if(pEd)r=await sb.from('people').update(row).eq('id',pid);else{r=await sb.from('people').insert(row).select('id').single();pid=r.data?.id}
