@@ -388,7 +388,7 @@ async function refresh(){
     if(!session){ADMIN=false;me=null;booted=false;setAccess();if(!tried){tried=true;if(await autoLogin())return refresh()}
       if(await getPub()){hideGate();$('#adminBox').hidden=true;$('#accBox').hidden=true;$('#adminLogin').hidden=false;load();return}
       items=[];renderAll();showGate('reg');return}
-    const a=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();if(a.error)throw a.error;
+    myId=session.user.id;const a=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();if(a.error)throw a.error;
     ADMIN=!!a.data;
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
     me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');setAccess();
@@ -405,7 +405,7 @@ function afterApproved(){
   load();if(ADMIN){loadReqs();showPub()}if(CAN_DB)loadPeople();
   if(!booted){booted=true;
     subs.push(sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe());
-    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).subscribe());
+    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'admins'},()=>refresh()).subscribe());
     if(ADMIN)subs.push(sb.channel('hq').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadReqs()).subscribe())}
   if(CAN_DB&&!subP){subP=sb.channel('hpp').on('postgres_changes',{event:'*',schema:'public',table:'people'},()=>loadPeople()).subscribe();subs.push(subP)}
 }
@@ -416,8 +416,8 @@ async function doLogout(){
 $('#logout').onclick=doLogout;
 // ===== طلبات الانضمام (للمشرف) =====
 const ST={pending:['قيد المراجعة','w'],approved:['مقبول',''],rejected:['مرفوض','r'],suspended:['موقوف','r']};
-let reqs=[];
-async function loadReqs(){if(!ADMIN)return;const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
+let reqs=[],adminSet=new Set(),myId=null;
+async function loadReqs(){if(!ADMIN)return;const ad=await sb.from('admins').select('user_id');adminSet=new Set((ad.data||[]).map(x=>x.user_id));const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
   reqs=(data||[]).filter(r=>r.name);renderReqs()}
 function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل قطاع 10». افتح الرابط التالي من نفس الجهاز والمتصفح الذي سجّلت منه، وسيُفتح الدليل مباشرة.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل قطاع 10». للاستفسار تواصل معنا.`;
   return 'https://wa.me/20'+normPhone(r.phone).slice(1)+'?text='+encodeURIComponent(txt)}
@@ -430,10 +430,14 @@ function renderReqs(){
   $('#reqs').innerHTML=L.length?L.map(r=>{const [lab,cl]=ST[r.status]||['',''];
     const d=new Date(r.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
     const btns=(r.status==='pending'?`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="${r.can_db?'':'call'}" data-dbp="${r.user_id}" data-v="${r.can_db?0:1}">${r.can_db?'سحب سماحية قاعدة البيانات':'منح سماحية قاعدة البيانات'}</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
+     +(r.status==='approved'&&r.user_id!==myId?`<button data-adm="${r.user_id}" data-v="${adminSet.has(r.user_id)?0:1}">${adminSet.has(r.user_id)?'إلغاء الإشراف':'ترقية إلى مشرف'}</button>`:'')
      +((r.status==='approved'||r.status==='rejected')?`<a href="${waMsg(r)}" target="_blank" rel="noopener">إبلاغ واتساب</a>`:'')
      +`<button data-del="${r.user_id}">حذف / إعادة تفعيل</button>`;
-    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px"><span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
+    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}<span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
 document.addEventListener('click',async e=>{
+  const am=e.target.closest('[data-adm]');
+  if(am){if(am.dataset.armed!=='1'){am.dataset.armed='1';am.textContent=am.dataset.v==='1'?'تأكيد الترقية':'تأكيد الإلغاء';return}
+    const {error}=await sb.rpc('admin_set_admin',{uid:am.dataset.adm,makeadmin:am.dataset.v==='1'});if(error){am.textContent='تعذر التنفيذ';return}loadReqs();return}
   const dp2=e.target.closest('[data-dbp]');
   if(dp2){await sb.from('profiles').update({can_db:dp2.dataset.v==='1'}).eq('user_id',dp2.dataset.dbp);loadReqs();return}
   const s=e.target.closest('[data-rq]');
