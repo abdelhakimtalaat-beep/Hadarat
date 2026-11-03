@@ -625,7 +625,8 @@ const dirRows=()=>items.filter(i=>match(i)&&(dayF===null||i.day===dayF)).sort((a
 const allDir=()=>items.slice().sort((a,b)=>a.day-b.day||a.time.localeCompare(b.time));
 const typeOf=p=>p.role==='deputy_general'?'نائب عام':p.role==='deputy'?'نائب':DC.get(p.id)?'مرشد':'مريد';
 const rank=p=>p.role==='deputy_general'?0:p.role==='deputy'?1:DC.get(p.id)?2:3;
-const allPeople=()=>people.slice().sort((a,b)=>rank(a)-rank(b)||byAge(a,b));
+const byHadra=(a,b)=>{const x=hName(a),y=hName(b);if(x&&y){const c=x.localeCompare(y,'ar');if(c)return c}else if(x)return -1;else if(y)return 1;return byAge(a,b)};
+const allPeople=()=>people.slice().sort(byHadra);
 function openEx(c){exCtx=c;const cur=c==='h'?dirRows().length:dbList().length,all=c==='h'?items.length:people.length;
   $('#ex-all').textContent=`الكل (${ar(all)})`;$('#ex-cur').textContent=`المعروض حاليًا بحسب البحث والتصفية (${ar(cur)})`;
   $('#ex-t').textContent=c==='h'?'تصدير دليل الحضرات':'تصدير قاعدة البيانات';$('#ex-m').hidden=true;$('#ex-sc-all').checked=true;$('#ex').hidden=false}
@@ -637,9 +638,9 @@ function exData(){const all=$('#ex-sc-all').checked;
       cols:[['م',5],['اسم الحضرة',24],['اليوم',11],['الموعد',11],['اسم الدار',20],['العنوان',40],['اسم المسؤول',24],['هاتف المسؤول',16],['رابط الموقع',30]],
       pdfCols:[0,1,2,3,4,5,6,7],
       rows:L.map((it,i)=>[i+1,it.name,it.dayName,fmt(it.time),it.dar||'',it.address||'',it.manager||'',it.phone||'',it.map||''])}}
-  const L=all?allPeople():dbList();
+  const L=(all?allPeople():dbList().sort(byHadra));
   return {title:'دليل قطاع 10 — قاعدة البيانات',sheet:'قاعدة البيانات',file:'قاعدة-البيانات',land:true,
-    cols:[['م',5],['الاسم',28],['النوع',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12]],
+    cols:[['م',5],['الاسم',28],['الصفة',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12]],
     pdfCols:[0,1,2,3,4,8,10,12,9],
     rows:L.map((p,i)=>{const a=ageOf(p),m=p.murshid_id&&PM.get(p.murshid_id);
       return [i+1,p.name,typeOf(p),stageL(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0]})}}
