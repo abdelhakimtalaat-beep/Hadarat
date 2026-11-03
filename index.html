@@ -5,7 +5,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<title>دليل حضرات قطاع 10</title>
+<title>دليل قطاع 10</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 [hidden]{display:none!important}
@@ -71,11 +71,13 @@ nav button.on svg{stroke:var(--gold)}
 <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></symbol>
 <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
 <symbol id="i-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
 </svg>
 
 <main>
 <section class="page on" id="p-home">
-  <div class="mini"><img src="logo-y.png" alt=""><b>دليل حضرات قطاع 10</b></div>
+  <div class="mini"><img src="logo-y.png" alt=""><b>دليل قطاع 10</b></div>
   <div class="wrap" style="padding-top:14px">
     <div class="search" style="margin-top:0"><input id="q2" type="search" placeholder="ابحث…" aria-label="بحث"></div>
     <div class="days" id="listDays"></div>
@@ -99,14 +101,31 @@ nav button.on svg{stroke:var(--gold)}
     <div class="note" id="installHelp">لوضع أيقونة التطبيق على شاشة الهاتف: في كروم اضغط قائمة النقاط الثلاث ثم «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية». وفي الآيفون افتح الرابط في سفاري، ثم زر المشاركة، ثم «إضافة إلى الشاشة الرئيسية».</div>
     <div id="accBox" hidden><h2>حسابي</h2><div class="note" id="accInfo"></div><button class="btn o" id="logout">تسجيل الخروج</button></div>
     <button class="btn o" id="adminLogin" data-gate="login" hidden>دخول المشرف</button>
-    <div id="adminBox" hidden><h2>إدارة الدليل</h2><button class="btn" id="addNew">إضافة حضرة جديدة</button>
-      <h2>وضع التطبيق</h2><div class="note" id="pubInfo"></div><button class="btn o" id="pubToggle">…</button>
-      <h2>طلبات الانضمام <span class="b" id="pendN" hidden></span></h2><div id="reqs"></div></div>
     <h2>ملاحظات</h2>
     <div class="note">يوجد سبع حضرات أو تجمعات لم تُسجَّل بياناتها بعد، وستُضاف لاحقًا بعد التواصل مع المسؤولين عنها.</div>
     <div class="note">إذا وجد أي مسئول خطأ في البيانات المعروضة، يرجى التواصل والإبلاغ عنه لتصحيحه.</div>
     <div class="note">المواعيد المعروضة هي بداية البرنامج حسب التوقيت الشتوي.</div>
     <p class="small" id="count"></p>
+  </div>
+</section>
+<section class="page" id="p-db">
+  <div class="mini"><img src="logo-y.png" alt=""><b>قاعدة البيانات</b></div>
+  <div class="wrap" style="padding-top:14px">
+    <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button></div>
+    <div class="search" style="margin:0 0 10px"><input id="dbq" type="search" placeholder="ابحث بالاسم أو الرقم أو الحضرة…" aria-label="بحث"></div>
+    <select id="dbh" class="in" style="margin-bottom:10px"><option value="">كل الحضرات</option></select>
+    <button class="btn" id="addPerson" hidden>إضافة شخص</button>
+    <p class="small" id="dbc"></p>
+    <div id="dbl"></div><button class="btn o" id="dbmore" hidden>عرض المزيد</button>
+  </div>
+</section>
+
+<section class="page" id="p-admin">
+  <div class="mini"><img src="logo-y.png" alt=""><b>الإشراف</b></div>
+  <div class="wrap" style="padding-top:14px">
+    <div id="adminBox" hidden><h2>إدارة الدليل</h2><button class="btn" id="addNew">إضافة حضرة جديدة</button>
+      <h2>وضع التطبيق</h2><div class="note" id="pubInfo"></div><button class="btn o" id="pubToggle">…</button>
+      <h2>طلبات الانضمام <span class="b" id="pendN" hidden></span></h2><input class="in" id="rq" type="search" placeholder="ابحث في الأعضاء بالاسم أو الرقم…" style="margin-bottom:10px"><div id="reqs"></div></div>
   </div>
 </section>
 </main>
@@ -127,9 +146,38 @@ nav button.on svg{stroke:var(--gold)}
 <button class="btn o" type="button" id="f-cancel">إلغاء</button>
 </form></div>
 <style>#edf label{display:grid;gap:4px;font-weight:600;font-size:15px}#edf input,#edf select,#edf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#edf input:focus,#edf select:focus,#edf textarea:focus{outline:2px solid var(--gold)}</style>
+<div id="sh" hidden><div class="shbar"><button id="shback" hidden>→ رجوع</button><button id="shx">إغلاق ✕</button></div><div id="shbody" class="wrap"></div></div>
+<div id="ped" hidden style="position:fixed;inset:0;z-index:2100;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
+<form id="pedf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
+<h2 id="pedt" style="margin:0">تعديل بيانات</h2>
+<label>الاسم<input id="p-name" required></label>
+<div class="two"><label>تاريخ الميلاد<input id="p-birth" type="date"></label><label>المحافظة<input id="p-gov"></label></div>
+<label>الرقم القومي<input id="p-nid" inputmode="numeric" dir="ltr"></label>
+<label>الموبايل<input id="p-phone" inputmode="tel" dir="ltr"></label>
+<label>الحضرة<select id="p-h"></select></label>
+<label>اسم الحضرة (إن لم تكن ضمن الدليل)<input id="p-ht"></label>
+<label>العنوان<textarea id="p-addr" rows="2"></textarea></label>
+<label>المرشد<input id="pm-q" placeholder="اكتب جزءًا من الاسم للبحث"><select id="pm" size="5"></select></label>
+<div id="p-msg" class="note" hidden></div>
+<button class="btn" type="submit">حفظ</button>
+<button class="btn o" type="button" id="p-del" hidden>حذف الشخص</button>
+<button class="btn o" type="button" id="p-cancel">إلغاء</button>
+</form></div>
+<style>
+#pedf label{display:grid;gap:4px;font-weight:600;font-size:15px}#pedf input,#pedf select,#pedf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#pedf input:focus,#pedf select:focus,#pedf textarea:focus{outline:none;border-color:var(--gold)}
+#sh{position:fixed;inset:0;z-index:1900;background:var(--bg);overflow:auto}
+.shbar{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;gap:8px;background:linear-gradient(135deg,#e4f3ea,#c9e4d4);border-bottom:3px solid var(--gold);padding:10px 16px}
+.shbar button{border:2px solid var(--g);background:var(--card);color:var(--g);border-radius:12px;padding:8px 14px;font-weight:700}
+#shbody{padding-top:8px;padding-bottom:40px}
+.shh{margin:12px 0 6px;font-size:22px}.shh:before{display:none}
+.lk{color:inherit;text-decoration:underline dotted var(--gold);text-underline-offset:5px;cursor:pointer}
+.kv{display:flex;gap:10px;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--bd)}.kv:last-of-type{border:0}.kv span{color:var(--mu);flex:0 0 auto}.kv b{font-weight:600;text-align:left}
+.lst{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:4px 14px}.lst>div{padding:8px 0;border-bottom:1px solid var(--bd)}.lst>div:last-child{border:0}
+#sh[hidden],#ped[hidden]{display:none!important}
+</style>
 <div id="gate" hidden>
  <div class="gbox">
-  <img src="logo-y.png" alt="" class="glogo"><h1>دليل حضرات قطاع 10</h1>
+  <img src="logo-y.png" alt="" class="glogo"><h1>دليل قطاع 10</h1>
   <div id="g-login" class="gp" hidden>
     <p class="gsub">دخول المشرف</p>
     <form id="gl"><input class="in" id="gl-id" placeholder="البريد الإلكتروني" inputmode="email" dir="ltr" autocomplete="username" required>
@@ -174,13 +222,16 @@ nav button.on svg{stroke:var(--gold)}
 .gbox .note{text-align:right}
 .req .acts{grid-template-columns:repeat(auto-fit,minmax(80px,1fr))}
 .req .st{float:left}
+nav .dot{position:absolute;top:2px;inset-inline-start:50%;margin:0 0 0 -22px;background:#c0392b;color:#fff;border-radius:10px;padding:0 7px;font-size:12px;line-height:18px}
 .dot{background:#c0392b;color:#fff;border-radius:10px;padding:0 8px;font-size:13px;margin-inline-start:6px}
 .b.w{background:#fbf1c7;color:#6b4e00}.b.r{background:#fde4e0;color:#a5281b}
 nav button{position:relative}
 </style>
 <nav>
-  <button data-go="home" class="on"><svg width="24" height="24"><use href="#i-home"/></svg>الرئيسية</button>
+  <button data-go="home" class="on"><svg width="24" height="24"><use href="#i-list"/></svg>الحضرات</button>
   <button data-go="fav"><svg width="24" height="24"><use href="#i-heart"/></svg>المفضلة</button>
+  <button data-go="db" id="nav-db" hidden><svg width="24" height="24"><use href="#i-db"/></svg>قاعدة البيانات</button>
+  <button data-go="admin" id="nav-admin" hidden><svg width="24" height="24"><use href="#i-shield"/></svg>الإشراف</button>
   <button data-go="more"><svg width="24" height="24"><use href="#i-more"/></svg>المزيد</button>
 </nav>
 
@@ -204,7 +255,7 @@ function cardHTML(it){
   const f=favs.includes(it.id);
   const dir=it.lat?`https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}`:it.map;
   return `<article class="card" data-id="${it.id}">
-  <h3>${it.name}</h3>
+  <h3><a class="lk" data-hadra="${it.id}">${it.name}</a></h3>
   <div class="badges"><span class="b">${it.dayName}</span><span class="b t">${fmt(it.time)}</span></div>
   <div class="row"><svg width="20" height="20"><use href="#i-home"/></svg><span>${it.dar||'—'}</span></div>
   <div class="row"><svg width="20" height="20"><use href="#i-pin"/></svg><span>${it.address||'—'}</span></div>
@@ -233,6 +284,8 @@ function dayChips(el,onPick,withAll){
 }
 function refreshChips(){dayChips($('#listDays'),d=>{dayF=d;refreshChips();renderAll()},true)}
 function go(p){
+  if((p==='db'&&!CAN_DB)||(p==='admin'&&!ADMIN))return;
+  if(p==='db'&&CAN_DB)renderDb();
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===p));
   scrollTo(0,0);
@@ -246,11 +299,11 @@ function waLink(it){
   const url=it.lat?`https://www.google.com/maps/search/?api=1&query=${it.lat},${it.lng}`:it.map;
   const text=`🕌 حضرة ${it.name}\n📅 ${it.dayName} – ${fmt(it.time)}\n🏠 ${it.dar}\n📍 ${it.address}\n👤 ${it.manager}${it.phone?' – '+it.phone:''}\n🗺️ ${url}`;
   return 'https://wa.me/?text='+encodeURIComponent(text)}
-$('#shareApp').href='https://wa.me/?text='+encodeURIComponent('دليل الحضرات – الطريقة الدسوقية المحمدية – قطاع رقم 10\n'+location.href.split('#')[0]);
+$('#shareApp').href='https://wa.me/?text='+encodeURIComponent('دليل قطاع 10 – الطريقة الدسوقية المحمدية\n'+location.href.split('#')[0]);
 $('#q2').addEventListener('input',e=>{q=e.target.value;renderAll()});
 function stamp(){$('#updated').textContent=UPDATED?'آخر تحديث للبيانات: '+new Date(UPDATED).toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}):'';$('#count').textContent=`عدد الحضرات المسجلة: ${ar(items.length)}`}
 stamp();
-$('#shareApp').href='https://wa.me/?text='+encodeURIComponent('دليل الحضرات – الطريقة الدسوقية المحمدية – قطاع رقم 10\n'+location.href.split('#')[0]);
+$('#shareApp').href='https://wa.me/?text='+encodeURIComponent('دليل قطاع 10 – الطريقة الدسوقية المحمدية\n'+location.href.split('#')[0]);
 refreshChips();renderAll();
 
 
@@ -317,52 +370,57 @@ async function refresh(){
   if(!sb){showGate('nocfg');return}
   try{
     const {data:{session}}=await sb.auth.getSession();
-    if(!session){ADMIN=false;me=null;booted=false;if(!tried){tried=true;if(await autoLogin())return refresh()}
+    if(!session){ADMIN=false;me=null;booted=false;setAccess();if(!tried){tried=true;if(await autoLogin())return refresh()}
       if(await getPub()){hideGate();$('#adminBox').hidden=true;$('#accBox').hidden=true;$('#adminLogin').hidden=false;load();return}
       items=[];renderAll();showGate('reg');return}
     const a=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();if(a.error)throw a.error;
     ADMIN=!!a.data;
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
-    me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');
+    me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');setAccess();
     if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();$('#adminLogin').hidden=false;load()}else{booted=false;items=[];renderAll();showGate(st)}
   }catch(err){
     let ok=false;try{ok=localStorage.getItem('hz-ok')==='1'&&JSON.parse(localStorage.getItem('hz-cache')||'null')}catch(_){}
-    if(ok){hideGate();ADMIN=false;load()}else showGate('reg')}
+    if(ok){hideGate();ADMIN=false;me=null;setAccess();load()}else showGate('reg')}
 }
 function afterApproved(){
   $('#adminLogin').hidden=true;
   try{localStorage.setItem('hz-ok','1')}catch(e){}
   $('#accBox').hidden=false;$('#logout').hidden=!ADMIN;$('#accInfo').textContent=me?('مسجّل باسم: '+me.name):'حساب مشرف';
-  $('#adminBox').hidden=!ADMIN;
-  load();if(ADMIN){loadReqs();showPub()}
+  setAccess();
+  load();if(ADMIN){loadReqs();showPub()}if(CAN_DB)loadPeople();
   if(!booted){booted=true;
     subs.push(sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe());
+    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).subscribe());
     if(ADMIN)subs.push(sb.channel('hq').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadReqs()).subscribe())}
+  if(CAN_DB&&!subP){subP=sb.channel('hpp').on('postgres_changes',{event:'*',schema:'public',table:'people'},()=>loadPeople()).subscribe();subs.push(subP)}
 }
 async function doLogout(){
-  try{subs.forEach(s=>sb.removeChannel(s))}catch(e){}subs=[];booted=false;
+  try{subs.forEach(s=>sb.removeChannel(s))}catch(e){}subs=[];subP=null;booted=false;
   await sb.auth.signOut();try{localStorage.removeItem('hz-cache');localStorage.removeItem('hz-ok')}catch(e){}
-  items=[];ADMIN=false;me=null;$('#accBox').hidden=true;$('#adminBox').hidden=true;stamp();refreshChips();renderAll();refresh()}
+  items=[];ADMIN=false;me=null;setAccess();$('#accBox').hidden=true;stamp();refreshChips();renderAll();refresh()}
 $('#logout').onclick=doLogout;
 // ===== طلبات الانضمام (للمشرف) =====
 const ST={pending:['قيد المراجعة','w'],approved:['مقبول',''],rejected:['مرفوض','r'],suspended:['موقوف','r']};
 let reqs=[];
 async function loadReqs(){if(!ADMIN)return;const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
   reqs=(data||[]).filter(r=>r.name);renderReqs()}
-function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل حضرات قطاع 10». افتح الرابط التالي من نفس الجهاز والمتصفح الذي سجّلت منه، وسيُفتح الدليل مباشرة.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل حضرات قطاع 10». للاستفسار تواصل معنا.`;
+function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل قطاع 10». افتح الرابط التالي من نفس الجهاز والمتصفح الذي سجّلت منه، وسيُفتح الدليل مباشرة.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل قطاع 10». للاستفسار تواصل معنا.`;
   return 'https://wa.me/20'+normPhone(r.phone).slice(1)+'?text='+encodeURIComponent(txt)}
 function renderReqs(){
   const pn=reqs.filter(r=>r.status==='pending').length;
   $('#pendN').hidden=!pn;$('#pendN').textContent=ar(pn);
-  const nb=document.querySelector('nav [data-go=more]');nb.querySelector('.dot')?.remove();if(pn&&ADMIN)nb.insertAdjacentHTML('beforeend',`<span class="dot">${ar(pn)}</span>`);
-  const order={pending:0,approved:1,suspended:2,rejected:3};
-  $('#reqs').innerHTML=reqs.length?reqs.slice().sort((a,b)=>order[a.status]-order[b.status]).map(r=>{const [lab,cl]=ST[r.status]||['',''];
+  const nb=$('#nav-admin');nb.querySelector('.dot')?.remove();if(pn&&ADMIN)nb.insertAdjacentHTML('beforeend',`<span class="dot">${ar(pn)}</span>`);
+  const order={pending:0,approved:1,suspended:2,rejected:3},k=norm(rqQ);
+  const L=reqs.filter(r=>!k||norm(r.name+' '+r.phone).includes(k)).sort((a,b)=>order[a.status]-order[b.status]);
+  $('#reqs').innerHTML=L.length?L.map(r=>{const [lab,cl]=ST[r.status]||['',''];
     const d=new Date(r.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
-    const btns=(r.status==='pending'?`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
+    const btns=(r.status==='pending'?`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="${r.can_db?'':'call'}" data-dbp="${r.user_id}" data-v="${r.can_db?0:1}">${r.can_db?'سحب سماحية قاعدة البيانات':'منح سماحية قاعدة البيانات'}</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
      +((r.status==='approved'||r.status==='rejected')?`<a href="${waMsg(r)}" target="_blank" rel="noopener">إبلاغ واتساب</a>`:'')
      +`<button data-del="${r.user_id}">حذف / إعادة تفعيل</button>`;
-    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${r.name}</h3><div class="small"><bdi dir="ltr">${r.phone}</bdi> · ${d}</div><div class="acts">${btns}</div><div class="pwbox" data-box="${r.user_id}"></div></article>`}).join(''):'<div class="empty">لا توجد طلبات.</div>'}
+    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px"><span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
 document.addEventListener('click',async e=>{
+  const dp2=e.target.closest('[data-dbp]');
+  if(dp2){await sb.from('profiles').update({can_db:dp2.dataset.v==='1'}).eq('user_id',dp2.dataset.dbp);loadReqs();return}
   const s=e.target.closest('[data-rq]');
   if(s){const {error}=await sb.from('profiles').update({status:s.dataset.rq,decided_at:new Date().toISOString()}).eq('user_id',s.dataset.u);loadReqs();return}
   const pw=e.target.closest('[data-pw]');
@@ -375,6 +433,98 @@ document.addEventListener('click',async e=>{
   if(del){if(del.dataset.armed!=='1'){del.dataset.armed='1';del.textContent='تأكيد الحذف';return}
     const {error}=await sb.rpc('admin_delete_user',{uid:del.dataset.del});if(!error)loadReqs();else del.textContent='تعذر الحذف'}
 });
+// ===== قاعدة البيانات (للمشرف ومن يمنحه المشرف السماحية) =====
+let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbq='',dbh='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cntM=n=>n===1?'مريد واحد':n===2?'مريدان':n<=10?ar(n)+' مريدين':ar(n)+' مريدًا';
+const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ar');
+const hItem=p=>p.hadra_id?items.find(i=>i.id===p.hadra_id):null;
+const hName=p=>{const h=hItem(p);return h?h.name:(p.hadra_text||'')};
+const hLink=p=>{const h=hItem(p);return h?`<a class="lk" data-hadra="${h.id}">${esc(h.name)}</a>`:(p.hadra_text?esc(p.hadra_text):'—')};
+const pLink=id=>{const p=PM.get(id);return p?`<a class="lk" data-person="${id}">${esc(p.name)}</a>`:'—'};
+const pPhone=p=>p.phone?`<bdi dir="ltr">${esc(p.phone)}</bdi>${phoneOK(p.phone)?'':' <span class="small">(الرقم يحتاج مراجعة)</span>'}`:'—';
+const ic=n=>`<svg width="20" height="20"><use href="#i-${n}"/></svg>`;
+function setAccess(){
+  CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&me.can_db));
+  $('#nav-db').hidden=!CAN_DB;$('#nav-admin').hidden=!ADMIN;$('#adminBox').hidden=!ADMIN;
+  if(!CAN_DB){people=[];PM=new Map();DC=new Map();closeSheet()}
+  const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN))go('home');
+  $('#addPerson').hidden=!ADMIN}
+async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
+  for(;;){const {data,error}=await sb.from('people').select('*').order('id').range(from,from+999);if(error)return;all=all.concat(data);if(data.length<1000)break;from+=1000}
+  people=all;PM=new Map(all.map(p=>[p.id,p]));DC=new Map();all.forEach(p=>{if(p.murshid_id)DC.set(p.murshid_id,(DC.get(p.murshid_id)||0)+1)});
+  dbHadraOpts();renderDb();if(!$('#sh').hidden)renderSheet()}
+function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach(p=>cn.set(p.hadra_id||0,(cn.get(p.hadra_id||0)||0)+1));
+  s.innerHTML='<option value="">كل الحضرات</option>'+items.slice().sort(byName).filter(i=>cn.get(i.id)).map(i=>`<option value="${i.id}">${esc(i.name)} (${ar(cn.get(i.id))})</option>`).join('')+(cn.get(0)?`<option value="none">غير مرتبطة بحضرة (${ar(cn.get(0))})</option>`:'');s.value=v}
+function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0;
+  return `<article class="card pc"><h3><a class="lk" data-person="${p.id}">${esc(p.name)}</a></h3>
+  ${n?`<div class="badges"><span class="b">مرشد · ${cntM(n)}</span></div>`:''}
+  <div class="row">${ic('home')}<span>${hLink(p)}</span></div>
+  ${p.murshid_id?`<div class="row">${ic('user')}<span>المرشد: ${pLink(p.murshid_id)}</span></div>`:''}
+  <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div>
+  ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</article>`}
+function dbList(){let a=people;
+  if(dbv==='s')a=a.filter(p=>DC.get(p.id));
+  if(dbh==='none')a=a.filter(p=>!p.hadra_id);else if(dbh)a=a.filter(p=>String(p.hadra_id)===dbh);
+  if(dbq){const k=norm(dbq);a=a.filter(p=>norm([p.name,p.phone,hName(p),p.governorate,p.murshid_id&&PM.get(p.murshid_id)?.name].join(' ')).includes(k))}
+  return dbv==='s'?a.slice().sort((x,y)=>(DC.get(y.id)||0)-(DC.get(x.id)||0)||byName(x,y)):a.slice().sort(byName)}
+function renderDb(){const a=dbList();$('#cm').textContent=ar(people.length);$('#cs').textContent=ar(DC.size);
+  document.querySelectorAll('[data-dbv]').forEach(b=>b.classList.toggle('on',b.dataset.dbv===dbv));
+  $('#dbl').innerHTML=a.length?a.slice(0,shown).map(personCard).join(''):'<div class="empty">لا توجد نتائج</div>';
+  $('#dbmore').hidden=a.length<=shown;$('#dbmore').textContent=`عرض المزيد (${ar(a.length-shown)})`;
+  $('#dbc').textContent=a.length?`عدد النتائج: ${ar(a.length)}`:''}
+$('#dbq').addEventListener('input',e=>{dbq=e.target.value;shown=60;renderDb()});
+$('#dbh').onchange=e=>{dbh=e.target.value;shown=60;renderDb()};
+$('#dbmore').onclick=()=>{shown+=60;renderDb()};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dbv]');if(b){dbv=b.dataset.dbv;shown=60;renderDb()}});
+// ----- النافذة المنبثقة (حضرة / شخص) مع الربط بين الأسماء -----
+const kv=(l,v)=>v?`<div class="kv"><span>${l}</span><b>${v}</b></div>`:'';
+const dt=s=>s?new Date(s+'T00:00:00').toLocaleDateString('ar-EG',{year:'numeric',month:'long',day:'numeric'}):'';
+function listLinks(arr,withH){return arr.length?`<div class="lst">${arr.map(p=>`<div><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?` <span class="small">· ${hLink(p)}</span>`:''}</div>`).join('')}</div>`:'<div class="small">—</div>'}
+function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byName),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
+  return `<h2 class="shh">${esc(p.name)}</h2>${kids.length?`<div class="badges"><span class="b">مرشد · ${cntM(kids.length)}</span></div>`:''}
+  <div class="card">${kv('الحضرة',hLink(p))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
+  ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
+  ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
+  ${kids.length?`<h2>المريدون (${ar(kids.length)})</h2>${listLinks(kids,true)}`:''}`}
+function sheetHadra(it){const ppl=people.filter(p=>p.hadra_id===it.id),ms=ppl.filter(p=>DC.get(p.id)).sort((a,b)=>DC.get(b.id)-DC.get(a.id));
+  return `${cardHTML(it)}${CAN_DB?`<h2>المرشدون في هذه الحضرة (${ar(ms.length)})</h2>${listLinks(ms,false)}<h2>المريدون في هذه الحضرة (${ar(ppl.length)})</h2>${listLinks(ppl.slice().sort(byName),false)}`:''}`}
+function renderSheet(){const c=shCur;if(!c)return;let h='';
+  if(c.t==='h'){const it=items.find(i=>i.id===c.id);h=it?sheetHadra(it):'<div class="empty">غير موجودة</div>'}
+  else{const p=PM.get(c.id);h=p?sheetPerson(p):'<div class="empty">غير موجود</div>'}
+  $('#shbody').innerHTML=h;$('#shback').hidden=!shStack.length}
+function openSheet(t,id,push=true){if(push&&shCur)shStack.push(shCur);shCur={t,id};$('#sh').hidden=false;renderSheet();$('#shbody').scrollTop=0;document.body.style.overflow='hidden'}
+function closeSheet(){shStack=[];shCur=null;$('#sh').hidden=true;document.body.style.overflow=''}
+$('#shback').onclick=()=>{shCur=shStack.pop()||null;if(!shCur)return closeSheet();renderSheet()};
+$('#shx').onclick=closeSheet;
+document.addEventListener('click',e=>{
+  const h=e.target.closest('[data-hadra]');if(h){e.preventDefault();openSheet('h',+h.dataset.hadra);return}
+  const p=e.target.closest('[data-person]');if(p){e.preventDefault();if(CAN_DB)openSheet('p',+p.dataset.person);return}
+  const pe=e.target.closest('[data-pedit]');if(pe)openPed(PM.get(+pe.dataset.pedit))});
+// ----- تعديل بيانات شخص (للمشرف) -----
+function fillPm(q,sel){const k=norm(q||''),s=$('#pm');
+  let a=people.filter(p=>(!pEd||p.id!==pEd.id)&&(!k||norm(p.name+' '+(p.phone||'')).includes(k))).sort(byName).slice(0,60);
+  if(sel&&!a.find(p=>p.id===sel)&&PM.get(sel))a.unshift(PM.get(sel));
+  s.innerHTML='<option value="">بلا مرشد</option>'+a.map(p=>`<option value="${p.id}">${esc(p.name)}${p.phone?' · '+p.phone:''}</option>`).join('');s.value=sel||''}
+function openPed(p){pEd=p||null;$('#pedt').textContent=p?'تعديل بيانات':'إضافة شخص';
+  $('#p-name').value=p?.name||'';$('#p-birth').value=p?.birth_date||'';$('#p-nid').value=p?.national_id||'';$('#p-phone').value=p?.phone||'';$('#p-gov').value=p?.governorate||'';
+  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';
+  $('#p-ht').value=p?.hadra_text||'';$('#p-addr').value=p?.address||'';$('#pm-q').value='';fillPm('',p?.murshid_id||null);
+  $('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
+const closePed=()=>{$('#ped').hidden=true};
+$('#p-cancel').onclick=closePed;$('#addPerson').onclick=()=>openPed(null);
+$('#pm-q').addEventListener('input',e=>fillPm(e.target.value,+$('#pm').value||null));
+const pmsg=s=>{const m=$('#p-msg');m.textContent=s;m.hidden=false};
+$('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;
+  const hv=$('#p-h').value,ph=$('#p-phone').value.replace(/\D/g,'');
+  const row={name:$('#p-name').value.trim().replace(/\s+/g,' '),birth_date:$('#p-birth').value||null,national_id:$('#p-nid').value.replace(/\D/g,'')||null,phone:ph||null,governorate:$('#p-gov').value.trim()||null,
+    hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
+  if(!row.name)return pmsg('اكتب الاسم.');
+  const r=pEd?await sb.from('people').update(row).eq('id',pEd.id):await sb.from('people').insert(row);
+  if(r.error)return pmsg('تعذر الحفظ: '+r.error.message);closePed();loadPeople()};
+$('#p-del').onclick=async()=>{if($('#p-del').textContent!=='اضغط مرة أخرى لتأكيد الحذف'){$('#p-del').textContent='اضغط مرة أخرى لتأكيد الحذف';return}
+  const r=await sb.from('people').delete().eq('id',pEd.id);if(r.error)return pmsg('تعذر الحذف: '+r.error.message);closePed();closeSheet();loadPeople()};
+$('#rq').addEventListener('input',e=>{rqQ=e.target.value;renderReqs()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sb)refresh()});
 showGate('wait');startWatch();refresh();
 let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('#install').hidden=false});
