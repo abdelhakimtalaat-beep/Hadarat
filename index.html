@@ -71,6 +71,7 @@ nav button.on svg{stroke:var(--gold)}
 <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z"/></symbol>
 <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
 <symbol id="i-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M9 15l2 2 4-4"/></symbol>
 <symbol id="i-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
 <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
 </svg>
@@ -121,6 +122,14 @@ nav button.on svg{stroke:var(--gold)}
     <button class="btn o" id="exD" style="padding:10px">⬇ تصدير Excel / PDF</button>
     <p class="small" id="dbc"></p>
     <div id="dbl"></div><button class="btn o" id="dbmore" hidden>عرض المزيد</button>
+  </div>
+</section>
+
+<section class="page" id="p-mw">
+  <div class="mini"><img src="logo-y.png" alt=""><b>حضور المولد</b></div>
+  <div class="wrap" style="padding-top:14px">
+    <div class="card" id="mwtot" style="text-align:center"></div>
+    <div id="mwbody"></div><datalist id="mwrl"></datalist>
   </div>
 </section>
 
@@ -252,11 +261,24 @@ nav .dot{position:absolute;top:2px;inset-inline-start:50%;margin:0 0 0 -22px;bac
 .dot{background:#c0392b;color:#fff;border-radius:10px;padding:0 8px;font-size:13px;margin-inline-start:6px}
 .b.w{background:#fbf1c7;color:#6b4e00}.b.r{background:#fde4e0;color:#a5281b}
 nav button{position:relative}
+nav.many button{font-size:11px}
+.mwbig{display:inline-block;width:48%;vertical-align:top}.mwbig b{display:block;font-size:34px;color:var(--g);line-height:1.2}.mwbig span{color:var(--mu);font-size:14px}
+.mwsub{margin-top:8px;color:var(--mu);font-size:14px}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:14px;background:var(--card)}
+.mwt{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}.mwt th:nth-child(1){width:31%}.mwt th:nth-child(2){width:23%}.mwt th:nth-child(3){width:23%}.mwt th:nth-child(4){width:23%}.mwt th{background:var(--g);color:#fff;padding:8px 3px;font-size:12px;position:sticky;top:0}
+.mwt td{padding:5px 4px;border-bottom:1px solid var(--bd);vertical-align:middle}.mwt td.nm{font-weight:600;line-height:1.35}.mwt .stc{white-space:nowrap;text-align:center}
+.mwt select,.mwt input{font:inherit;font-size:12px;width:100%;min-width:0;padding:6px 2px;border:1.5px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx)}
+.mwt select:disabled,.mwt input:disabled{opacity:.35}
+.sb{width:34px;height:34px;border-radius:12px;border:2px solid var(--bd);background:var(--card);font-size:17px;font-weight:800;color:var(--mu);margin-inline:1px;padding:0}
+.sb.y.on{background:#168a52;border-color:#168a52;color:#fff}.sb.n.on{background:#c0392b;border-color:#c0392b;color:#fff}
+.mwt tfoot td{background:#e4f3ea;font-weight:700;padding:10px 8px;border-bottom:0}
+.mgl{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;max-height:240px;overflow:auto;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:8px}.mgl label{font-size:14px;display:flex;gap:6px;align-items:center}
 </style>
 <nav>
   <button data-go="home" class="on"><svg width="24" height="24"><use href="#i-list"/></svg>الحضرات</button>
   <button data-go="fav"><svg width="24" height="24"><use href="#i-heart"/></svg>المفضلة</button>
   <button data-go="db" id="nav-db" hidden><svg width="24" height="24"><use href="#i-db"/></svg>قاعدة البيانات</button>
+  <button data-go="mw" id="nav-mw" hidden><svg width="24" height="24"><use href="#i-cal"/></svg>حضور المولد</button>
   <button data-go="admin" id="nav-admin" hidden><svg width="24" height="24"><use href="#i-shield"/></svg>الإشراف</button>
   <button data-go="more"><svg width="24" height="24"><use href="#i-more"/></svg>المزيد</button>
 </nav>
@@ -310,7 +332,8 @@ function dayChips(el,onPick,withAll){
 }
 function refreshChips(){dayChips($('#listDays'),d=>{dayF=d;refreshChips();renderAll()},true)}
 function go(p){
-  if((p==='db'&&!CAN_DB)||(p==='admin'&&!ADMIN))return;
+  if((p==='db'&&!CAN_DB)||(p==='admin'&&!ADMIN)||(p==='mw'&&!CAN_MW))return;
+  if(p==='mw')loadMw();
   if(p==='db'&&CAN_DB)renderDb();
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===p));
@@ -396,17 +419,19 @@ async function refresh(){
   if(!sb){showGate('nocfg');return}
   try{
     const {data:{session}}=await sb.auth.getSession();
-    if(!session){ADMIN=false;me=null;booted=false;setAccess();if(!tried){tried=true;if(await autoLogin())return refresh()}
+    if(!session){ADMIN=false;me=null;MYH=[];booted=false;setAccess();if(!tried){tried=true;if(await autoLogin())return refresh()}
       if(await getPub()){hideGate();$('#adminBox').hidden=true;$('#accBox').hidden=true;$('#adminLogin').hidden=false;load();return}
       items=[];renderAll();showGate('reg');return}
     myId=session.user.id;const a=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();if(a.error)throw a.error;
     ADMIN=!!a.data;
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
-    me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');setAccess();
+    me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');
+    try{const mh=await sb.from('hadra_managers').select('hadra_id').eq('user_id',myId);MYH=mh.error?[]:(mh.data||[]).map(x=>+x.hadra_id)}catch(_){MYH=[]}
+    setAccess();
     if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();$('#adminLogin').hidden=false;load()}else{booted=false;items=[];renderAll();showGate(st)}
   }catch(err){
     let ok=false;try{ok=localStorage.getItem('hz-ok')==='1'&&JSON.parse(localStorage.getItem('hz-cache')||'null')}catch(_){}
-    if(ok){hideGate();ADMIN=false;me=null;setAccess();load()}else showGate('reg')}
+    if(ok){hideGate();ADMIN=false;me=null;MYH=[];setAccess();load()}else showGate('reg')}
 }
 function afterApproved(){
   $('#adminLogin').hidden=true;
@@ -416,19 +441,19 @@ function afterApproved(){
   load();if(ADMIN){loadReqs();showPub()}if(CAN_DB)loadPeople();
   if(!booted){booted=true;
     subs.push(sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe());
-    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'admins'},()=>refresh()).subscribe());
+    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'admins'},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'hadra_managers',filter:'user_id=eq.'+me.user_id},()=>refresh()).subscribe());
     if(ADMIN)subs.push(sb.channel('hq').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadReqs()).subscribe())}
   if(CAN_DB&&!subP){subP=sb.channel('hpp').on('postgres_changes',{event:'*',schema:'public',table:'people'},()=>loadPeople()).subscribe();subs.push(subP)}
 }
 async function doLogout(){
   try{subs.forEach(s=>sb.removeChannel(s))}catch(e){}subs=[];subP=null;booted=false;
   await sb.auth.signOut();try{localStorage.removeItem('hz-cache');localStorage.removeItem('hz-ok')}catch(e){}
-  items=[];ADMIN=false;me=null;setAccess();$('#accBox').hidden=true;stamp();refreshChips();renderAll();refresh()}
+  items=[];ADMIN=false;me=null;MYH=[];setAccess();$('#accBox').hidden=true;stamp();refreshChips();renderAll();refresh()}
 $('#logout').onclick=doLogout;
 // ===== طلبات الانضمام (للمشرف) =====
 const ST={pending:['قيد المراجعة','w'],approved:['مقبول',''],rejected:['مرفوض','r'],suspended:['موقوف','r']};
 let reqs=[],adminSet=new Set(),myId=null;
-async function loadReqs(){if(!ADMIN)return;const ad=await sb.from('admins').select('user_id');adminSet=new Set((ad.data||[]).map(x=>x.user_id));const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
+async function loadReqs(){if(!ADMIN)return;try{const mg=await sb.from('hadra_managers').select('user_id,hadra_id');mgrMap=new Map();(mg.data||[]).forEach(x=>{if(!mgrMap.has(x.user_id))mgrMap.set(x.user_id,new Set());mgrMap.get(x.user_id).add(+x.hadra_id)})}catch(_){}const ad=await sb.from('admins').select('user_id');adminSet=new Set((ad.data||[]).map(x=>x.user_id));const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
   reqs=(data||[]).filter(r=>r.name);renderReqs()}
 function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل قطاع 10». افتح الرابط التالي من نفس الجهاز والمتصفح الذي سجّلت منه، وسيُفتح الدليل مباشرة.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل قطاع 10». للاستفسار تواصل معنا.`;
   return 'https://wa.me/20'+normPhone(r.phone).slice(1)+'?text='+encodeURIComponent(txt)}
@@ -441,10 +466,11 @@ function renderReqs(){
   $('#reqs').innerHTML=L.length?L.map(r=>{const [lab,cl]=ST[r.status]||['',''];
     const d=new Date(r.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
     const btns=(r.status==='pending'?`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="${r.can_db?'':'call'}" data-dbp="${r.user_id}" data-v="${r.can_db?0:1}">${r.can_db?'سحب سماحية قاعدة البيانات':'منح سماحية قاعدة البيانات'}</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
+     +(r.status==='approved'?`<button data-mgr="${r.user_id}">مسئول حضرة</button>`:'')
      +(r.status==='approved'&&r.user_id!==myId?`<button data-adm="${r.user_id}" data-v="${adminSet.has(r.user_id)?0:1}">${adminSet.has(r.user_id)?'إلغاء الإشراف':'ترقية إلى مشرف'}</button>`:'')
      +((r.status==='approved'||r.status==='rejected')?`<a href="${waMsg(r)}" target="_blank" rel="noopener">إبلاغ واتساب</a>`:'')
      +`<button data-del="${r.user_id}">حذف / إعادة تفعيل</button>`;
-    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}<span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
+    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}${mgrBadge(r.user_id)}<span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div><div class="mgbox" data-mgbox="${r.user_id}"></div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
 document.addEventListener('click',async e=>{
   const am=e.target.closest('[data-adm]');
   if(am){if(am.dataset.armed!=='1'){am.dataset.armed='1';am.textContent=am.dataset.v==='1'?'تأكيد الترقية':'تأكيد الإلغاء';return}
@@ -493,10 +519,11 @@ async function applyPhotos(root=document){const els=[...root.querySelectorAll('[
 function withGroups(a,render,key,all){all=all||a;let out='',kk=false,nn=false;const kn=all.filter(isKid).length,nd=all.filter(p=>!p.birth_date).length;
   for(const p of a){if(key==='age'){if(!kk&&isKid(p)){kk=true;out+=`<div class="grp">${KIDH} · ${ar(kn)}</div>`}if(!nn&&!p.birth_date){nn=true;out+=`<div class="grp">${NOBH} · ${ar(nd)}</div>`}}out+=render(p)}return out}
 function setAccess(){
-  CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&me.can_db));
+  CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&me.can_db));CAN_MW=!!(ADMIN||(me&&me.status==='approved'&&MYH.length));$('#nav-mw').hidden=!CAN_MW;
   $('#nav-db').hidden=!CAN_DB;$('#nav-admin').hidden=!ADMIN;$('#adminBox').hidden=!ADMIN;
   if(!CAN_DB){people=[];PM=new Map();DC=new Map();closeSheet()}
-  const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN))go('home');
+  document.querySelector('nav').classList.toggle('many',[...document.querySelectorAll('nav button')].filter(b=>!b.hidden).length>5);
+  const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN)||(cur==='p-mw'&&!CAN_MW))go('home');
   $('#addPerson').hidden=!ADMIN}
 async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
   for(;;){const {data,error}=await sb.from('people').select('*').order('id').range(from,from+999);if(error)return;all=all.concat(data);if(data.length<1000)break;from+=1000}
@@ -680,6 +707,70 @@ td{padding:5px;border:1px solid #d6e6db;vertical-align:top}tr:nth-child(even) td
 <script>addEventListener('load',()=>{(document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,2500))]):Promise.resolve()).then(()=>setTimeout(()=>print(),300))})<\/script></body></html>`);w.document.close();
   exMsg('فُتحت نافذة الطباعة: اختر «حفظ بصيغة PDF» من وجهة الطباعة.')}
 $('#ex-xl').onclick=exportXlsx;$('#ex-pdf').onclick=exportPdf;
+// ===== حضور المولد =====
+let CAN_MW=false,MYH=[],mwRoster=[],mwSum=[],mwH=null,mgrMap=new Map(),mwTimer=null;
+const MODES=['سيارة خاصة','أتوبيس / ميكروباص','مواصلات عامة','مشيًا','أخرى'];
+const REASONS=['سفر','مرض','عمل','ظروف عائلية','كبر السن','أخرى'];
+const pct=(a,b)=>b?Math.round(a*1000/b)/10:0;
+const pctT=(a,b)=>ar(String(pct(a,b)).replace('.','٫'))+'٪';
+const hnm=id=>(items.find(i=>i.id===id)||{}).name||('حضرة '+id);
+$('#mwrl').innerHTML=REASONS.map(r=>`<option value="${r}">`).join('');
+async function loadMw(){if(!CAN_MW||!sb)return;
+  const [r,s]=await Promise.all([sb.rpc('mawlid_roster'),sb.rpc('mawlid_summary')]);
+  if(r.error||s.error){$('#mwbody').innerHTML='<div class="note">تعذر تحميل البيانات: '+esc((r.error||s.error).message)+' (تأكد من تشغيل mawlid.sql)</div>';return}
+  mwRoster=r.data||[];mwSum=s.data||[];renderMw()}
+function mwHadras(){const ids=ADMIN?[...new Set(mwSum.map(x=>x.hadra_id))]:MYH.filter(h=>mwSum.some(x=>x.hadra_id===h));return ids.sort((a,b)=>hnm(a).localeCompare(hnm(b),'ar'))}
+function recalc(h){const L=mwRoster.filter(x=>x.hadra_id===h);const e=mwSum.find(x=>x.hadra_id===h);if(!e)return;e.total=L.length;e.yes=L.filter(x=>x.status==='yes').length;e.no=L.filter(x=>x.status==='no').length}
+function mwTotals(){const t=mwSum.reduce((a,x)=>({n:a.n+x.total,y:a.y+x.yes,no:a.no+x.no}),{n:0,y:0,no:0});
+  $('#mwtot').innerHTML=`<div class="mwbig"><b>${ar(t.y)}</b><span>إجمالي الحضور في القطاع</span></div><div class="mwbig"><b>${pctT(t.y,t.n)}</b><span>نسبة الحضور</span></div>
+  <div class="mwsub">من إجمالي ${ar(t.n)} مريدًا · معتذرون ${ar(t.no)} · لم يُسجَّل ${ar(t.n-t.y-t.no)}</div>`}
+function renderMw(){
+  mwTotals();const hs=mwHadras();
+  if(!hs.length){$('#mwbody').innerHTML='<div class="note">لا توجد حضرات مُسندة إليك بعد، أو لا يوجد مريدون مربوطون بحضراتك.</div>';return}
+  if(!hs.includes(mwH))mwH=hs[0];
+  const sel=`<select id="mwh" class="in" style="margin:10px 0">${hs.map(h=>{const e=mwSum.find(x=>x.hadra_id===h)||{yes:0,total:0};return `<option value="${h}" ${h===mwH?'selected':''}>${esc(hnm(h))} — ${ar(e.yes)} من ${ar(e.total)}</option>`}).join('')}</select>`;
+  const L=mwRoster.filter(x=>x.hadra_id===mwH),yes=L.filter(x=>x.status==='yes').length,no=L.filter(x=>x.status==='no').length;
+  const rows=L.map(x=>`<tr data-pid="${x.person_id}"><td class="nm">${esc(x.name)}${x.role?' '+roleB({role:x.role}):''}</td>
+   <td class="stc"><button class="sb y${x.status==='yes'?' on':''}" data-mw="yes" aria-label="حضور">✓</button><button class="sb n${x.status==='no'?' on':''}" data-mw="no" aria-label="اعتذار">✗</button></td>
+   <td><select class="mwm" ${x.status==='yes'?'':'disabled'}><option value="">—</option>${MODES.map(m=>`<option ${x.mode===m?'selected':''}>${m}</option>`).join('')}</select></td>
+   <td><input class="mwr" list="mwrl" value="${esc(x.reason||'')}" placeholder="${x.status==='no'?'السبب':''}" ${x.status==='no'?'':'disabled'}></td></tr>`).join('');
+  $('#mwbody').innerHTML=sel+`<div class="small" id="mwst" style="min-height:22px"></div>
+  <div class="tw"><table class="mwt"><thead><tr><th>الاسم</th><th>الحضور</th><th>وسيلة الحضور</th><th>سبب عدم الحضور</th></tr></thead><tbody>${rows}</tbody>
+  <tfoot><tr><td>نسبة الحضور</td><td colspan="3"><b>${pctT(yes,L.length)}</b> — حضور ${ar(yes)} من ${ar(L.length)} · معتذرون ${ar(no)} · لم يُسجَّل ${ar(L.length-yes-no)}</td></tr></tfoot></table></div>`
+  +(ADMIN?`<details style="margin-top:14px"><summary class="b" style="cursor:pointer;display:inline-block">ملخص كل الحضرات</summary><div class="lst" style="margin-top:8px">${mwSum.slice().sort((a,b)=>hnm(a.hadra_id).localeCompare(hnm(b.hadra_id),'ar')).map(x=>`<div>${esc(hnm(x.hadra_id))} <span class="small">· حضور ${ar(x.yes)} من ${ar(x.total)} · <b>${pctT(x.yes,x.total)}</b></span></div>`).join('')}</div></details>
+  <button class="btn o" id="mwreset" style="margin-top:14px">مسح كل التسجيلات (بداية مناسبة جديدة)</button>`:'')}
+const mwS=s=>{const e=$('#mwst');if(e)e.textContent=s};
+async function saveAtt(pid){const x=mwRoster.find(r=>r.person_id==pid);if(!x)return;mwS('جارٍ الحفظ…');
+  const {error}=await sb.from('attendance').upsert({person_id:x.person_id,status:x.status||null,mode:x.status==='yes'?(x.mode||null):null,reason:x.status==='no'?(x.reason||null):null,updated_by:myId,updated_at:new Date().toISOString()},{onConflict:'person_id'});
+  mwS(error?'تعذر الحفظ: '+error.message:'تم الحفظ ✓')}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-mw]');
+  if(b){const tr=b.closest('tr'),x=mwRoster.find(r=>r.person_id==tr.dataset.pid),v=b.dataset.mw;x.status=x.status===v?null:v;if(x.status!=='yes')x.mode=null;if(x.status!=='no')x.reason=null;
+    recalc(mwH);const sc=window.scrollY;renderMw();window.scrollTo(0,sc);mwTotals();saveAtt(x.person_id);return}
+  const rs=e.target.closest('#mwreset');
+  if(rs){if(rs.dataset.armed!=='1'){rs.dataset.armed='1';rs.textContent='اضغط مرة أخرى لتأكيد مسح كل التسجيلات';return}
+    const {error}=await sb.from('attendance').delete().gte('person_id',0);if(error){rs.textContent='تعذر المسح';return}loadMw()}});
+document.addEventListener('change',e=>{
+  if(e.target.id==='mwh'){mwH=+e.target.value;renderMw();return}
+  const tr=e.target.closest('.mwt tr[data-pid]');if(!tr)return;const x=mwRoster.find(r=>r.person_id==tr.dataset.pid);if(!x)return;
+  if(e.target.classList.contains('mwm'))x.mode=e.target.value||null;else if(e.target.classList.contains('mwr'))x.reason=e.target.value.trim()||null;else return;
+  saveAtt(x.person_id)});
+function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt'))loadMw()},45000)}
+// ----- تعيين مسئولي الحضرات (للمشرف) -----
+const mgrBadge=uid=>{const s=mgrMap.get(uid);return s&&s.size?`<span class="b" style="background:#dff0fb;color:#145c85">مسئول: ${[...s].slice(0,3).map(hnm).join('، ')}${s.size>3?' +'+ar(s.size-3):''}</span>`:''};
+document.addEventListener('click',async e=>{
+  const m=e.target.closest('[data-mgr]');
+  if(m){const uid=m.dataset.mgr,box=document.querySelector(`[data-mgbox="${uid}"]`);if(box.innerHTML){box.innerHTML='';return}
+    const r=reqs.find(x=>x.user_id===uid)||{};let cur=mgrMap.get(uid);
+    if(!cur||!cur.size)cur=new Set(items.filter(i=>i.phone&&i.phone===r.phone).map(i=>i.id));
+    box.innerHTML=`<div class="small" style="margin:8px 0">اختر الحضرات التي يسجّل هذا العضو حضورها${(!mgrMap.get(uid)||!mgrMap.get(uid).size)&&cur.size?' (حُدّدت تلقائيًا الحضرة المسجّل رقمه كمسئول لها)':''}:</div>
+    <div class="mgl">${items.slice().sort(byName).map(i=>`<label><input type="checkbox" value="${i.id}" ${cur.has(i.id)?'checked':''}> ${esc(i.name)}</label>`).join('')}</div>
+    <button class="btn" data-mgsave="${uid}" style="margin-top:8px">حفظ التعيين</button><div class="small" data-mgmsg></div>`;return}
+  const sv=e.target.closest('[data-mgsave]');
+  if(sv){const box=sv.closest('[data-mgbox]'),ids=[...box.querySelectorAll('input:checked')].map(x=>+x.value);
+    const {error}=await sb.rpc('admin_set_managed',{uid:sv.dataset.mgsave,hadras:ids});
+    if(error){box.querySelector('[data-mgmsg]').textContent='تعذر الحفظ: '+error.message+' (تأكد من تشغيل mawlid.sql)';return}loadReqs()}});
+mwWatch();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&sb)refresh()});
 showGate('wait');startWatch();refresh();
 let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('#install').hidden=false});
