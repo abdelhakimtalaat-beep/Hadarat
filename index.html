@@ -88,11 +88,6 @@ nav button.on svg{stroke:var(--gold)}
   </div>
 </section>
 
-<section class="page" id="p-fav">
-  <div class="mini"><img src="logo-y.png" alt=""><b>المفضلة</b></div>
-  <div class="wrap" style="padding-top:14px"><div id="favs"></div></div>
-</section>
-
 <section class="page" id="p-more">
   <div class="mini"><img src="logo-y.png" alt=""><b>المزيد</b></div>
   <div class="wrap" style="padding-top:14px">
@@ -276,7 +271,6 @@ nav.many button{font-size:11px}
 </style>
 <nav>
   <button data-go="home" class="on"><svg width="24" height="24"><use href="#i-list"/></svg>الحضرات</button>
-  <button data-go="fav"><svg width="24" height="24"><use href="#i-heart"/></svg>المفضلة</button>
   <button data-go="db" id="nav-db" hidden><svg width="24" height="24"><use href="#i-db"/></svg>قاعدة البيانات</button>
   <button data-go="mw" id="nav-mw" hidden><svg width="24" height="24"><use href="#i-cal"/></svg>حضور المولد</button>
   <button data-go="admin" id="nav-admin" hidden><svg width="24" height="24"><use href="#i-shield"/></svg>الإشراف</button>
@@ -293,14 +287,11 @@ const $=s=>document.querySelector(s);
 const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const norm=s=>(s||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').toLowerCase();
 const fmt=t=>{let[h,m]=t.split(':').map(Number);const p=h>=12?'م':'ص';h=h%12||12;return ar(h+':'+String(m).padStart(2,'0'))+' '+p};
-let favs=[];try{favs=JSON.parse(localStorage.getItem('fav')||'[]')}catch(e){}
-const saveFav=()=>{try{localStorage.setItem('fav',JSON.stringify(favs))}catch(e){}};
 // JS getDay: 0=Sun..6=Sat -> ours: Sat=0
 const todayIdx=()=>(new Date().getDay()+1)%7;
 function nextDelta(it){const now=new Date();const[h,m]=it.time.split(':').map(Number);const nowMin=now.getHours()*60+now.getMinutes();
   let d=(it.day-todayIdx()+7)%7;if(d===0&&h*60+m+90<nowMin)d=7;return d*1440+h*60+m}
 function cardHTML(it){
-  const f=favs.includes(it.id);
   const dir=it.lat?`https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}`:it.map;
   return `<article class="card" data-id="${it.id}">
   <h3><a class="lk" data-hadra="${it.id}">${it.name}</a></h3>
@@ -313,7 +304,7 @@ function cardHTML(it){
     ${dir?`<a href="${dir}" target="_blank" rel="noopener"><svg width="22" height="22"><use href="#i-nav"/></svg>الاتجاهات</a>`:''}
     ${it.phone?`<a target="_blank" rel="noopener" href="https://wa.me/20${it.phone.slice(1)}"><svg width="22" height="22"><use href="#i-chat"/></svg>واتساب</a>`:''}
     <a target="_blank" rel="noopener" href="${waLink(it)}"><svg width="22" height="22"><use href="#i-share"/></svg>مشاركة</a>
-    ${ADMIN?`<button data-edit="${it.id}"><svg width="22" height="22"><use href="#i-user"/></svg>تعديل</button>`:''}<button class="fav ${f?'on':''}" data-fav="${it.id}"><svg width="22" height="22" ${f?'style="fill:currentColor"':''}><use href="#i-heart"/></svg>${f?'في المفضلة':'مفضلة'}</button>
+    ${ADMIN?`<button data-edit="${it.id}"><svg width="22" height="22"><use href="#i-user"/></svg>تعديل</button>`:''}
   </div></article>`}
 const list=(arr,el,empty='لا توجد نتائج')=>{el.innerHTML=arr.length?arr.map(cardHTML).join(''):`<div class="empty">${empty}</div>`};
 let q='',dayF=null;
@@ -321,7 +312,6 @@ const match=it=>!q||norm([it.name,it.dar,it.address,it.manager,it.dayName].join(
 function renderAll(){
   const a=items.filter(i=>match(i)&&(dayF===null||i.day===dayF)).sort((a,b)=>a.day-b.day||a.time.localeCompare(b.time));
   list(a,$('#all'));
-  list(items.filter(i=>favs.includes(i.id)),$('#favs'),'لم تضف حضرات إلى المفضلة بعد. اضغط «مفضلة» في أي بطاقة.');
 }
 const cnt=n=>n===1?'حضرة واحدة':n===2?'حضرتان':n<=10?ar(n)+' حضرات':ar(n)+' حضرة';
 function dayChips(el,onPick,withAll){
@@ -341,7 +331,6 @@ function go(p){
 }
 document.addEventListener('click',e=>{
   const g=e.target.closest('[data-go]');if(g){if(g.dataset.go==='list'&&g.classList.contains('btn')){dayF=null;refreshChips();renderAll()}go(g.dataset.go);return}
-  const f=e.target.closest('[data-fav]');if(f){const id=+f.dataset.fav;favs=favs.includes(id)?favs.filter(x=>x!==id):[...favs,id];saveFav();renderAll();return}
   
 });
 function waLink(it){
@@ -709,7 +698,7 @@ td{padding:5px;border:1px solid #d6e6db;vertical-align:top}tr:nth-child(even) td
 $('#ex-xl').onclick=exportXlsx;$('#ex-pdf').onclick=exportPdf;
 // ===== حضور المولد =====
 let CAN_MW=false,MYH=[],mwRoster=[],mwSum=[],mwH=null,mgrMap=new Map(),mwTimer=null,mwOpts={mode:[],reason:[]},mwOptOpen=false;
-const DEF_MODES=['سيارة ملاكي','أتوبيس','ميكروباص'],DEF_REASONS=['ظروف العمل','ظروف مرضية','السفر للخارج'];
+const DEF_MODES=['سيارة ملاكي','أتوبيس','ميكروباص'],DEF_REASONS=['ظروف العمل','ظروف مرضية','السفر للخارج','كبر السن/صعوبة الحركة'];
 const pct=(a,b)=>b?Math.round(a*1000/b)/10:0;
 const pctT=(a,b)=>ar(String(pct(a,b)).replace('.','٫'))+'٪';
 const hnm=id=>(items.find(i=>i.id===id)||{}).name||('حضرة '+id);
@@ -725,11 +714,12 @@ function mwTotals(){const t=mwSum.reduce((a,x)=>({n:a.n+x.total,y:a.y+x.yes,no:a
   $('#mwtot').innerHTML=`<div class="mwbig"><b>${ar(t.y)}</b><span>إجمالي الحضور في القطاع</span></div><div class="mwbig"><b>${pctT(t.y,t.n)}</b><span>نسبة الحضور</span></div>
   <div class="mwsub">من إجمالي ${ar(t.n)} مريدًا (دون الأطفال) · معتذرون ${ar(t.no)} · لم يُسجَّل ${ar(t.n-t.y-t.no)}</div>
   <div class="mwsub">الأطفال دون ١٤ سنة (غير محسوبين): ${ar(t.kt)} · حضر منهم ${ar(t.ky)}</div>`}
-const optHTML=(kind,cur)=>{const L=mwOpts[kind].map(o=>o.label);if(cur&&!L.includes(cur))L.push(cur);return '<option value="">—</option>'+L.map(l=>`<option ${l===cur?'selected':''}>${esc(l)}</option>`).join('')};
+const OTH='__other';
+const optHTML=(kind,cur)=>{const L=mwOpts[kind].map(o=>o.label),oth=cur&&!L.includes(cur);return '<option value="">—</option>'+L.map(l=>`<option ${l===cur?'selected':''}>${esc(l)}</option>`).join('')+`<option value="${OTH}" ${oth?'selected':''}>أخرى…</option>`};
+const mwCell=(kind,cls,cur,on)=>{const oth=cur&&!mwOpts[kind].some(o=>o.label===cur);return `<td><select class="${cls}" ${on?'':'disabled'}>${optHTML(kind,cur)}</select><input class="in mwo" data-k="${kind}" maxlength="60" placeholder="اكتب هنا" value="${oth?esc(cur):''}" ${oth&&on?'':'hidden'} style="margin-top:4px;padding:6px 8px;font-size:13px"></td>`};
 const mwRow=x=>`<tr data-pid="${x.person_id}"><td class="nm">${esc(x.name)}${x.role?' '+roleB({role:x.role}):''}</td>
    <td class="stc"><button class="sb y${x.status==='yes'?' on':''}" data-mw="yes" aria-label="حضور">✓</button><button class="sb n${x.status==='no'?' on':''}" data-mw="no" aria-label="اعتذار">✗</button></td>
-   <td><select class="mwm" ${x.status==='yes'?'':'disabled'}>${optHTML('mode',x.mode)}</select></td>
-   <td><select class="mwr" ${x.status==='no'?'':'disabled'}>${optHTML('reason',x.reason)}</select></td></tr>`;
+   ${mwCell('mode','mwm',x.mode,x.status==='yes')}${mwCell('reason','mwr',x.reason,x.status==='no')}</tr>`;
 const mwTable=(L,foot)=>`<div class="tw"><table class="mwt"><thead><tr><th>الاسم</th><th>الحضور</th><th>وسيلة الحضور</th><th>سبب عدم الحضور</th></tr></thead><tbody>${L.map(mwRow).join('')}</tbody><tfoot><tr>${foot}</tr></tfoot></table></div>`;
 function optsAdmin(){return `<details id="mwopts" style="margin-top:14px" ${mwOptOpen?'open':''}><summary class="b" style="cursor:pointer;display:inline-block">إدارة خيارات القوائم</summary>`+
   [['mode','وسيلة الحضور'],['reason','سبب عدم الحضور']].map(([k,t])=>`<h2 style="font-size:16px">${t}</h2><div class="badges">${mwOpts[k].map(o=>`<span class="b">${esc(o.label)}${o.id?` <a data-oprm="${o.id}" style="cursor:pointer;color:#c0392b;font-weight:800">✕</a>`:''}</span>`).join('')||'<span class="small">لا توجد خيارات</span>'}</div>
@@ -767,7 +757,11 @@ document.addEventListener('click',async e=>{
 document.addEventListener('change',e=>{
   if(e.target.id==='mwh'){mwH=+e.target.value;renderMw();return}
   const tr=e.target.closest('.mwt tr[data-pid]');if(!tr)return;const x=mwRoster.find(r=>r.person_id==tr.dataset.pid);if(!x)return;
-  if(e.target.classList.contains('mwm'))x.mode=e.target.value||null;else if(e.target.classList.contains('mwr'))x.reason=e.target.value.trim()||null;else return;
+  const t=e.target,isM=t.classList.contains('mwm')||(t.classList.contains('mwo')&&t.dataset.k==='mode'),isR=t.classList.contains('mwr')||(t.classList.contains('mwo')&&t.dataset.k==='reason');if(!isM&&!isR)return;
+  const td=t.closest('td'),sel=td.querySelector('select'),inp=td.querySelector('.mwo');let v;
+  if(t===sel){if(sel.value===OTH){inp.hidden=false;inp.focus();v=inp.value.trim()||null;if(!v)return}else{inp.hidden=true;inp.value='';v=sel.value||null}}
+  else v=inp.value.trim()||null;
+  if(isM)x.mode=v;else x.reason=v;
   saveAtt(x.person_id)});
 function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt'))loadMw()},45000)}
 // ----- تعيين مسئولي الحضرات (للمشرف) -----
