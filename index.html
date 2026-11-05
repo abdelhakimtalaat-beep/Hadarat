@@ -110,9 +110,11 @@ nav button.on svg{stroke:var(--gold)}
   <div class="wrap" style="padding-top:14px">
     <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button><button class="chip" data-dbv="d">النواب<small id="cd"></small></button></div>
     <div class="search" style="margin:0 0 10px"><input id="dbq" type="search" placeholder="ابحث بالاسم أو الرقم أو الحضرة…" aria-label="بحث"></div>
-    <select id="dbh" class="in" style="margin-bottom:10px"><option value="">كل الحضرات</option></select>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px">
+    <select id="dbst" class="in" style="margin:0;min-width:0;padding:10px 6px;font-size:13px"><option value="">كل المراحل</option><option value="first">الأولى</option><option value="second">الثانية</option><option value="third">الثالثة</option><option value="none">بلا مرحلة</option></select>
+    <select id="dbh" class="in" style="margin:0;min-width:0;padding:10px 6px;font-size:13px"><option value="">كل الحضرات</option></select>
+    <select id="dbsec" class="in" style="margin:0;min-width:0;padding:10px 6px;font-size:13px"><option value="">كل القطاعات</option></select></div>
     <select id="dbs" class="in" style="margin-bottom:10px"></select>
-    <select id="dbst" class="in" style="margin-bottom:10px"><option value="">كل المراحل</option><option value="first">المرحلة الأولى</option><option value="second">المرحلة الثانية</option><option value="third">المرحلة الثالثة</option><option value="none">بلا مرحلة</option></select>
     <button class="btn" id="addPerson" hidden>إضافة شخص</button>
     <button class="btn o" id="exD" style="padding:10px">⬇ تصدير Excel / PDF</button>
     <p class="small" id="dbc"></p>
@@ -172,7 +174,7 @@ nav button.on svg{stroke:var(--gold)}
 <div class="two"><label>تاريخ الميلاد<input id="p-birth" type="date"></label><label>المحافظة<input id="p-gov"></label></div>
 <label>الرقم القومي<input id="p-nid" inputmode="numeric" dir="ltr"></label>
 <label>الموبايل<input id="p-phone" inputmode="tel" dir="ltr"></label>
-<label>الصفة<select id="p-role"><option value="">بلا صفة (مريد)</option><option value="deputy">نائب</option><option value="deputy_general">نائب عام</option><option value="khalifa">خليفة</option><option value="khalifa_khulafa">خليفة خلفاء</option></select></label>
+<label>الصفة<select id="p-role"><option value="">بلا صفة (مريد)</option><option value="deputy_general">نائب عام</option><option value="deputy">نائب</option><option value="khalifa_khulafa">خليفة خلفاء</option><option value="khalifa">خليفة</option></select></label>
 <label>المرحلة<select id="p-stage"><option value="">— فارغة —</option><option value="first">الأولى</option><option value="second">الثانية</option><option value="third">الثالثة</option></select></label>
 <label>الحضرة<select id="p-h"></select></label>
 <label>اسم الحضرة (إن لم تكن ضمن الدليل)<input id="p-ht"></label>
@@ -480,7 +482,7 @@ document.addEventListener('click',async e=>{
     const {error}=await sb.rpc('admin_delete_user',{uid:del.dataset.del});if(!error)loadReqs();else del.textContent='تعذر الحذف'}
 });
 // ===== قاعدة البيانات (للمشرف ومن يمنحه المشرف السماحية) =====
-let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbst='',dbq='',dbh='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
+let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbst='',dbq='',dbh='',dbsec='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cntM=n=>n===1?'مريد واحد':n===2?'مريدان':n<=10?ar(n)+' مريدين':ar(n)+' مريدًا';
 const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ar');
@@ -520,7 +522,9 @@ function setAccess(){
 async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
   for(;;){const {data,error}=await sb.from('people').select('*').order('id').range(from,from+999);if(error)return;all=all.concat(data);if(data.length<1000)break;from+=1000}
   people=all;PM=new Map(all.map(p=>[p.id,p]));DC=new Map();all.forEach(p=>{if(p.murshid_id)DC.set(p.murshid_id,(DC.get(p.murshid_id)||0)+1)});
-  dbHadraOpts();renderDb();if(!$('#sh').hidden)renderSheet()}
+  dbHadraOpts();dbSecOpts();renderDb();if(!$('#sh').hidden)renderSheet()}
+function dbSecOpts(){const s=$('#dbsec'),c=new Map();people.forEach(p=>{if(p.sector_no)c.set(p.sector_no,(c.get(p.sector_no)||0)+1)});const none=people.filter(p=>!p.sector_no).length;
+  s.innerHTML='<option value="">كل القطاعات</option>'+[...c.keys()].sort((a,b)=>a.localeCompare(b,'ar',{numeric:true})).map(k=>`<option value="${esc(k)}">قطاع ${esc(ar(k))} (${ar(c.get(k))})</option>`).join('')+(none?`<option value="none">بلا قطاع (${ar(none)})</option>`:'');if(dbsec!==''&&dbsec!=='none'&&!c.has(dbsec))dbsec='';s.value=dbsec}
 function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach(p=>cn.set(p.hadra_id||0,(cn.get(p.hadra_id||0)||0)+1));
   s.innerHTML='<option value="">كل الحضرات</option>'+items.slice().sort(byName).filter(i=>cn.get(i.id)).map(i=>`<option value="${i.id}">${esc(i.name)} (${ar(cn.get(i.id))})</option>`).join('')+(cn.get(0)?`<option value="none">غير مرتبطة بحضرة (${ar(cn.get(0))})</option>`:'');s.value=v}
 function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p);
@@ -534,6 +538,7 @@ function dbList(){let a=people;
   if(dbv==='m')a=a.filter(p=>!isDep(p));else if(dbv==='s')a=a.filter(p=>DC.get(p.id)&&!isDep(p));else if(dbv==='d')a=a.filter(isDep);
   if(dbst==='none')a=a.filter(p=>!p.stage);else if(dbst)a=a.filter(p=>p.stage===dbst);
   if(dbh==='none')a=a.filter(p=>!p.hadra_id);else if(dbh)a=a.filter(p=>String(p.hadra_id)===dbh);
+  if(dbsec==='none')a=a.filter(p=>!p.sector_no);else if(dbsec)a=a.filter(p=>p.sector_no===dbsec);
   if(dbq){const k=norm(dbq);a=a.filter(p=>norm([p.name,p.phone,hName(p),p.governorate,p.murshid_id&&PM.get(p.murshid_id)?.name].join(' ')).includes(k))}
   const cmp=bySort(dbs);return a.slice().sort(dbv==='d'?(x,y)=>roleN(x)-roleN(y)||cmp(x,y):cmp)}
 function renderDb(){if(dbs==='count'&&dbv==='m')dbs='age';const a=dbList();$('#cm').textContent=ar(people.filter(p=>!isDep(p)).length);$('#cs').textContent=ar(people.filter(p=>DC.get(p.id)&&!isDep(p)).length);$('#cd').textContent=ar(people.filter(isDep).length);
@@ -542,6 +547,7 @@ function renderDb(){if(dbs==='count'&&dbv==='m')dbs='age';const a=dbList();$('#c
   $('#dbl').innerHTML=a.length?withGroups(a.slice(0,shown),personCard,dbs,a):'<div class="empty">لا توجد نتائج</div>';
   $('#dbmore').hidden=a.length<=shown;$('#dbmore').textContent=`عرض المزيد (${ar(a.length-shown)})`;
   $('#dbc').textContent=a.length?`عدد النتائج: ${ar(a.length)}`:'';applyPhotos($('#dbl'))}
+$('#dbsec').onchange=e=>{dbsec=e.target.value;shown=60;renderDb()};
 $('#dbst').onchange=e=>{dbst=e.target.value;shown=60;renderDb()};
 $('#dbs').onchange=e=>{dbs=e.target.value;shown=60;renderDb()};
 $('#dbq').addEventListener('input',e=>{dbq=e.target.value;shown=60;renderDb()});
