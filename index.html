@@ -26,6 +26,7 @@ button{font:inherit;cursor:pointer}
 h2{font-size:20px;margin:22px 0 10px;color:var(--g);display:flex;align-items:center;gap:8px}
 h2:before{content:"";width:6px;height:20px;background:var(--gold);border-radius:3px}
 .days{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+#p-db .days .chip{flex:1 1 0;padding:8px 4px}
 .chip{flex:0 0 auto;border:2px solid var(--bd);background:var(--card);color:var(--tx);border-radius:14px;padding:8px 14px;font-weight:600}
 .chip.on{background:var(--g);border-color:var(--g);color:#fff}
 .chip small{display:block;font-size:12px;opacity:.75;font-weight:400}
@@ -108,7 +109,7 @@ nav button.on svg{stroke:var(--gold)}
 <section class="page" id="p-db">
   <div class="mini"><img src="logo-y.png" alt=""><b>قاعدة البيانات</b></div>
   <div class="wrap" style="padding-top:14px">
-    <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button><button class="chip" data-dbv="d">النواب<small id="cd"></small></button></div>
+    <div class="days"><button class="chip on" data-dbv="m">المريدون<small id="cm"></small></button><button class="chip" data-dbv="s">المرشدون<small id="cs"></small></button><button class="chip" data-dbv="d">النواب<small id="cd"></small></button><button class="chip" data-dbv="k">الأطفال<small id="ck"></small></button></div>
     <div class="search" style="margin:0 0 10px"><input id="dbq" type="search" placeholder="ابحث بالاسم أو الرقم أو الحضرة…" aria-label="بحث"></div>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:10px">
     <select id="dbst" class="in" style="margin:0;min-width:0;padding:10px 6px;font-size:13px"><option value="">كل المراحل</option><option value="first">الأولى</option><option value="second">الثانية</option><option value="third">الثالثة</option><option value="none">بلا مرحلة</option></select>
@@ -535,13 +536,13 @@ function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p
   <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div></div>${av(p)}</div>
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</article>`}
 function dbList(){let a=people;
-  if(dbv==='m')a=a.filter(p=>!isDep(p));else if(dbv==='s')a=a.filter(p=>DC.get(p.id)&&!isDep(p));else if(dbv==='d')a=a.filter(isDep);
+  if(dbv==='m')a=a.filter(p=>!isDep(p));else if(dbv==='s')a=a.filter(p=>DC.get(p.id)&&!isDep(p));else if(dbv==='d')a=a.filter(isDep);else if(dbv==='k')a=a.filter(isKid);
   if(dbst==='none')a=a.filter(p=>!p.stage);else if(dbst)a=a.filter(p=>p.stage===dbst);
   if(dbh==='none')a=a.filter(p=>!p.hadra_id);else if(dbh)a=a.filter(p=>String(p.hadra_id)===dbh);
   if(dbsec==='none')a=a.filter(p=>!p.sector_no);else if(dbsec)a=a.filter(p=>p.sector_no===dbsec);
   if(dbq){const k=norm(dbq);a=a.filter(p=>norm([p.name,p.phone,hName(p),p.governorate,p.murshid_id&&PM.get(p.murshid_id)?.name].join(' ')).includes(k))}
   const cmp=bySort(dbs);return a.slice().sort(dbv==='d'?(x,y)=>roleN(x)-roleN(y)||cmp(x,y):cmp)}
-function renderDb(){if(dbs==='count'&&dbv==='m')dbs='age';const a=dbList();$('#cm').textContent=ar(people.filter(p=>!isDep(p)).length);$('#cs').textContent=ar(people.filter(p=>DC.get(p.id)&&!isDep(p)).length);$('#cd').textContent=ar(people.filter(isDep).length);
+function renderDb(){if(dbs==='count'&&dbv==='m')dbs='age';const a=dbList();const S10=people.filter(p=>p.sector_no==='10'),A10=S10.filter(p=>!isKid(p));$('#cm').textContent=ar(A10.length);$('#cs').textContent=ar(A10.filter(p=>DC.get(p.id)||isDep(p)).length);$('#cd').textContent=ar(S10.filter(isDep).length);$('#ck').textContent=ar(S10.filter(isKid).length);
   document.querySelectorAll('[data-dbv]').forEach(b=>b.classList.toggle('on',b.dataset.dbv===dbv));
   $('#dbs').innerHTML='<option value="age">الترتيب: الأكبر سنًا أولًا</option><option value="name">الترتيب: حسب الاسم</option>'+(dbv!=='m'?'<option value="count">الترتيب: الأكثر مريدين</option>':'');$('#dbs').value=dbs;
   $('#dbl').innerHTML=a.length?withGroups(a.slice(0,shown),personCard,dbs,a):'<div class="empty">لا توجد نتائج</div>';
