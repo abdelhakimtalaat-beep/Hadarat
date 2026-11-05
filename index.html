@@ -564,7 +564,7 @@ function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(by
   return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${stageB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد | ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
   <div class="card">${kv('الحضرة',hLink(p))}${kv('رقم القطاع',esc(ar(p.sector_no||'')))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
   ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
-  ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
+  ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('القطاع',esc(ar(m.sector_no||'')))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
   ${kids.length?`<h2>المريدون (${ar(kids.length)})</h2>${listLinks(kids,true)}`:''}`}
 function sheetHadra(it){const ppl=people.filter(p=>p.hadra_id===it.id),ms=ppl.filter(p=>DC.get(p.id)).sort((a,b)=>DC.get(b.id)-DC.get(a.id));
   return `${cardHTML(it)}${CAN_DB?`<h2>المرشدون في هذه الحضرة (${ar(ms.length)})</h2>${listLinks(ms,false,false)}<h2>المريدون في هذه الحضرة (${ar(ppl.length)})</h2>${listLinks(ppl.slice().sort(byAge),false)}`:''}`}
@@ -721,7 +721,7 @@ function recalc(h){const L=mwRoster.filter(x=>x.hadra_id===h),A=L.filter(x=>!x.i
   e.total=A.length;e.yes=A.filter(x=>x.status==='yes').length;e.no=A.filter(x=>x.status==='no').length;e.kids_total=K.length;e.kids_yes=K.filter(x=>x.status==='yes').length}
 function mwTotals(){const t=mwSum.reduce((a,x)=>({n:a.n+x.total,y:a.y+x.yes,no:a.no+x.no,kt:a.kt+x.kids_total,ky:a.ky+x.kids_yes}),{n:0,y:0,no:0,kt:0,ky:0});
   $('#mwtot').innerHTML=`<div class="mwbig"><b>${ar(t.y)}</b><span>إجمالي الحضور في القطاع</span></div><div class="mwbig"><b>${pctT(t.y,t.n)}</b><span>نسبة الحضور</span></div>
-  <div class="mwsub">من إجمالي ${ar(t.n)} مريدًا (دون الأطفال) · معتذرون ${ar(t.no)} · لم يُسجَّل ${ar(t.n-t.y-t.no)}</div>
+  <div class="mwsub">من إجمالي ${ar(t.n)} مريدًا في قطاع ١٠ (دون الأطفال) · معتذرون ${ar(t.no)} · لم يُسجَّل ${ar(t.n-t.y-t.no)}</div>
   <div class="mwsub">الأطفال دون ١٤ سنة (غير محسوبين): ${ar(t.kt)} · حضر منهم ${ar(t.ky)}</div>`}
 const OTH='__other';
 const optHTML=(kind,cur)=>{const L=mwOpts[kind].map(o=>o.label),oth=cur&&!L.includes(cur);return '<option value="">—</option>'+L.map(l=>`<option ${l===cur?'selected':''}>${esc(l)}</option>`).join('')+`<option value="${OTH}" ${oth?'selected':''}>أخرى…</option>`};
