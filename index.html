@@ -286,7 +286,7 @@ nav.many button{font-size:11px}
 <script>
 const DATA={items:[],updated:''};
 const DAYS=['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
-let items=DATA.items.slice(),ADMIN=false,UPDATED=DATA.updated;
+let items=DATA.items.slice(),ADMIN=false,EDITH=new Set(),accMap=new Map(),UPDATED=DATA.updated;
 const $=s=>document.querySelector(s);
 const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const norm=s=>(s||'').replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').toLowerCase();
@@ -308,7 +308,7 @@ function cardHTML(it){
     ${dir?`<a href="${dir}" target="_blank" rel="noopener"><svg width="22" height="22"><use href="#i-nav"/></svg>الاتجاهات</a>`:''}
     ${it.phone?`<a target="_blank" rel="noopener" href="https://wa.me/20${it.phone.slice(1)}"><svg width="22" height="22"><use href="#i-chat"/></svg>واتساب</a>`:''}
     <a target="_blank" rel="noopener" href="${waLink(it)}"><svg width="22" height="22"><use href="#i-share"/></svg>مشاركة</a>
-    ${ADMIN?`<button data-edit="${it.id}"><svg width="22" height="22"><use href="#i-user"/></svg>تعديل</button>`:''}
+    ${(ADMIN||EDITH.has(it.id))?`<button data-edit="${it.id}"><svg width="22" height="22"><use href="#i-user"/></svg>تعديل</button>`:''}
   </div></article>`}
 const list=(arr,el,empty='لا توجد نتائج')=>{el.innerHTML=arr.length?arr.map(cardHTML).join(''):`<div class="empty">${empty}</div>`};
 let q='',dayF=null;
@@ -365,12 +365,12 @@ const fday=$('#f-day');DAYS.forEach((d,i)=>fday.insertAdjacentHTML('beforeend',`
 function openEd(it){editing=it||null;$('#edt').textContent=it?'تعديل حضرة':'إضافة حضرة جديدة';
   $('#f-name').value=it?.name||'';fday.value=it?it.day:0;$('#f-time').value=it?.time||'08:00';$('#f-dar').value=it?.dar||'';$('#f-address').value=it?.address||'';
   $('#f-manager').value=it?.manager||'';$('#f-phone').value=it?.phone||'';$('#f-map').value=it?.map||'';$('#f-msg').hidden=true;
-  $('#f-del').hidden=!it;$('#f-del').textContent='حذف الحضرة';$('#ed').hidden=false}
+  $('#f-del').hidden=!it||!ADMIN;$('#f-del').textContent='حذف الحضرة';$('#ed').hidden=false}
 const closeEd=()=>{$('#ed').hidden=true};
 const msg=s=>{const m=$('#f-msg');m.textContent=s;m.hidden=false};
 $('#f-cancel').onclick=closeEd;$('#addNew').onclick=()=>openEd(null);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if(b)openEd(items.find(i=>i.id==b.dataset.edit))});
-$('#edf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;
+$('#edf').onsubmit=async e=>{e.preventDefault();if(!sb||!(ADMIN||(editing&&EDITH.has(editing.id))))return;
   const ph=$('#f-phone').value.replace(/\D/g,'');if(ph&&!phoneOK(ph))return msg('رقم الهاتف غير صحيح. اكتبه بصيغة 01XXXXXXXXX أو اتركه فارغًا.');
   const row={name:$('#f-name').value.trim(),day:+fday.value,time:$('#f-time').value,dar:$('#f-dar').value.trim(),address:$('#f-address').value.trim(),manager:$('#f-manager').value.trim(),phone:ph,map:$('#f-map').value.trim(),updated_at:new Date().toISOString()};
   const r=editing?await sb.from('hadarat').update(row).eq('id',editing.id):await sb.from('hadarat').insert(row);
@@ -420,6 +420,7 @@ async function refresh(){
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
     me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');
     try{const mh=await sb.from('hadra_managers').select('hadra_id').eq('user_id',myId);MYH=mh.error?[]:(mh.data||[]).map(x=>+x.hadra_id)}catch(_){MYH=[]}
+    EDITH=new Set();if(st==='approved'&&!ADMIN){try{const ha=await sb.from('hadra_access').select('hadra_id,can_edit').eq('user_id',myId);if(!ha.error)EDITH=new Set((ha.data||[]).filter(x=>x.can_edit).map(x=>+x.hadra_id))}catch(_){}}
     setAccess();
     if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();$('#adminLogin').hidden=false;load()}else{booted=false;items=[];renderAll();showGate(st)}
   }catch(err){
@@ -434,7 +435,7 @@ function afterApproved(){
   load();if(ADMIN){loadReqs();showPub()}if(CAN_DB)loadPeople();
   if(!booted){booted=true;
     subs.push(sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe());
-    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'admins'},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'hadra_managers',filter:'user_id=eq.'+me.user_id},()=>refresh()).subscribe());
+    if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'hadra_access'},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'admins'},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'hadra_managers',filter:'user_id=eq.'+me.user_id},()=>refresh()).subscribe());
     if(ADMIN)subs.push(sb.channel('hq').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadReqs()).subscribe())}
   if(CAN_DB&&!subP){subP=sb.channel('hpp').on('postgres_changes',{event:'*',schema:'public',table:'people'},()=>loadPeople()).subscribe();subs.push(subP)}
 }
@@ -446,7 +447,7 @@ $('#logout').onclick=doLogout;
 // ===== طلبات الانضمام (للمشرف) =====
 const ST={pending:['قيد المراجعة','w'],approved:['مقبول',''],rejected:['مرفوض','r'],suspended:['موقوف','r']};
 let reqs=[],adminSet=new Set(),myId=null;
-async function loadReqs(){if(!ADMIN)return;try{const mg=await sb.from('hadra_managers').select('user_id,hadra_id');mgrMap=new Map();(mg.data||[]).forEach(x=>{if(!mgrMap.has(x.user_id))mgrMap.set(x.user_id,new Set());mgrMap.get(x.user_id).add(+x.hadra_id)})}catch(_){}const ad=await sb.from('admins').select('user_id');adminSet=new Set((ad.data||[]).map(x=>x.user_id));const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
+async function loadReqs(){if(!ADMIN)return;try{const ac=await sb.from('hadra_access').select('user_id,hadra_id,can_edit');accMap=new Map();(ac.data||[]).forEach(x=>{if(!accMap.has(x.user_id))accMap.set(x.user_id,new Map());accMap.get(x.user_id).set(+x.hadra_id,!!x.can_edit)})}catch(_){}try{const mg=await sb.from('hadra_managers').select('user_id,hadra_id');mgrMap=new Map();(mg.data||[]).forEach(x=>{if(!mgrMap.has(x.user_id))mgrMap.set(x.user_id,new Set());mgrMap.get(x.user_id).add(+x.hadra_id)})}catch(_){}const ad=await sb.from('admins').select('user_id');adminSet=new Set((ad.data||[]).map(x=>x.user_id));const {data,error}=await sb.from('profiles').select('*').order('created_at',{ascending:false});if(error)return;
   reqs=(data||[]).filter(r=>r.name);renderReqs()}
 function waMsg(r){const txt=r.status==='approved'?`السلام عليكم ${r.name}،\nتم قبول طلبك في «دليل قطاع 10». افتح الرابط التالي من نفس الجهاز والمتصفح الذي سجّلت منه، وسيُفتح الدليل مباشرة.\n${location.origin}`:`السلام عليكم ${r.name}،\nنعتذر، لم نتمكن من قبول طلبك في «دليل قطاع 10». للاستفسار تواصل معنا.`;
   return 'https://wa.me/20'+normPhone(r.phone).slice(1)+'?text='+encodeURIComponent(txt)}
@@ -458,12 +459,13 @@ function renderReqs(){
   const L=reqs.filter(r=>!k||norm(r.name+' '+r.phone).includes(k)).sort((a,b)=>order[a.status]-order[b.status]);
   $('#reqs').innerHTML=L.length?L.map(r=>{const [lab,cl]=ST[r.status]||['',''];
     const d=new Date(r.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
-    const btns=(r.status==='pending'?`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="${r.can_db?'':'call'}" data-dbp="${r.user_id}" data-v="${r.can_db?0:1}">${r.can_db?'سحب سماحية قاعدة البيانات':'منح سماحية قاعدة البيانات'}</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
+    const btns=(r.status==='pending'?`<button class="call" data-acc="${r.user_id}" data-new="1">قبول…</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="${r.can_db?'':'call'}" data-dbp="${r.user_id}" data-v="${r.can_db?0:1}">${r.can_db?'سحب سماحية قاعدة البيانات':'منح سماحية قاعدة البيانات'}</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
+     +(r.status==='approved'?`<button data-acc="${r.user_id}">الحضرات المسموحة</button>`:'')
      +(r.status==='approved'?`<button data-mgr="${r.user_id}">مسئول حضرة</button>`:'')
      +(r.status==='approved'&&r.user_id!==myId?`<button data-adm="${r.user_id}" data-v="${adminSet.has(r.user_id)?0:1}">${adminSet.has(r.user_id)?'إلغاء الإشراف':'ترقية إلى مشرف'}</button>`:'')
      +((r.status==='approved'||r.status==='rejected')?`<a href="${waMsg(r)}" target="_blank" rel="noopener">إبلاغ واتساب</a>`:'')
      +`<button data-del="${r.user_id}">حذف / إعادة تفعيل</button>`;
-    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}${mgrBadge(r.user_id)}<span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div><div class="mgbox" data-mgbox="${r.user_id}"></div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
+    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}${mgrBadge(r.user_id)}${accBadge(r)}<span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div><div class="mgbox" data-mgbox="${r.user_id}"></div><div class="mgbox" data-acbox="${r.user_id}"></div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
 document.addEventListener('click',async e=>{
   const am=e.target.closest('[data-adm]');
   if(am){if(am.dataset.armed!=='1'){am.dataset.armed='1';am.textContent=am.dataset.v==='1'?'تأكيد الترقية':'تأكيد الإلغاء';return}
@@ -774,6 +776,28 @@ document.addEventListener('change',e=>{
   if(isM)x.mode=v;else x.reason=v;
   saveAtt(x.person_id)});
 function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt'))loadMw()},45000)}
+// ----- صلاحيات الحضرات لكل عضو (للمشرف) -----
+const accBadge=r=>{if(r.hadra_scope!=='selected')return '<span class="b t">يرى كل الحضرات</span>';const m=accMap.get(r.user_id)||new Map(),n=m.size,e=[...m.values()].filter(Boolean).length;return `<span class="b" style="background:#f0e6ff;color:#4b2e8f">${ar(n)} حضرة${e?` (${ar(e)} للتعديل)`:''}</span>`};
+function accPanel(uid,isNew){const r=reqs.find(x=>x.user_id===uid)||{},sel=r.hadra_scope==='selected',m=accMap.get(uid)||new Map();
+  return `<div class="small" style="margin:8px 0">${isNew?'قبول '+esc(r.name||'')+' — ':''}حدّد ما يراه هذا العضو:</div>
+  <label style="display:block;margin:4px 0"><input type="radio" name="sc-${uid}" value="all" ${sel?'':'checked'}> كل الحضرات (رؤية فقط)</label>
+  <label style="display:block;margin:4px 0"><input type="radio" name="sc-${uid}" value="selected" ${sel?'checked':''}> حضرات محددة فقط</label>
+  <div data-aclist style="${sel?'':'display:none'}"><input class="in" data-acq placeholder="بحث في الحضرات" style="margin:6px 0;padding:10px">
+  <div class="mgl" style="grid-template-columns:1fr">${items.slice().sort(byName).map(i=>{const v=m.has(i.id)?(m.get(i.id)?'e':'v'):'';return `<div class="acr" data-n="${esc(norm(i.name))}" style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:3px 0"><span style="font-size:14px">${esc(i.name)}</span><select data-h="${i.id}" style="padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);font:inherit;font-size:13px"><option value="" ${v===''?'selected':''}>بدون</option><option value="v" ${v==='v'?'selected':''}>رؤية فقط</option><option value="e" ${v==='e'?'selected':''}>رؤية وتعديل</option></select></div>`}).join('')}</div></div>
+  <button class="btn" data-acsave="${uid}" data-new="${isNew?1:0}" style="margin-top:8px">${isNew?'قبول وحفظ الصلاحيات':'حفظ الصلاحيات'}</button><div class="small" data-acmsg></div>`}
+document.addEventListener('click',async e=>{
+  const o=e.target.closest('[data-acc]');
+  if(o){const uid=o.dataset.acc,box=document.querySelector(`[data-acbox="${uid}"]`);if(box.innerHTML){box.innerHTML='';return}box.innerHTML=accPanel(uid,o.dataset.new==='1');return}
+  const sv=e.target.closest('[data-acsave]');
+  if(sv){const uid=sv.dataset.acsave,box=sv.closest('[data-acbox]'),scope=box.querySelector('input[type=radio]:checked').value,msgEl=box.querySelector('[data-acmsg]');
+    const v=[],ed=[];box.querySelectorAll('select[data-h]').forEach(s=>{if(s.value==='v')v.push(+s.dataset.h);else if(s.value==='e')ed.push(+s.dataset.h)});
+    if(scope==='selected'&&!v.length&&!ed.length){msgEl.textContent='اختر حضرة واحدة على الأقل، أو اختر «كل الحضرات».';return}
+    const {error}=await sb.rpc('admin_set_access',{uid,scope,hadras:v,editable:ed});
+    if(error){msgEl.textContent='تعذر الحفظ: '+error.message+' (تأكد من تشغيل hadra-access.sql)';return}
+    if(sv.dataset.new==='1'){const {error:e2}=await sb.from('profiles').update({status:'approved',decided_at:new Date().toISOString()}).eq('user_id',uid);if(e2){msgEl.textContent='تعذر القبول: '+e2.message;return}}
+    loadReqs();return}});
+document.addEventListener('change',e=>{const r=e.target.closest('input[type=radio][name^="sc-"]');if(r){const l=r.closest('[data-acbox]').querySelector('[data-aclist]');l.style.display=r.value==='selected'?'':'none'}});
+document.addEventListener('input',e=>{if(e.target.matches('[data-acq]')){const k=norm(e.target.value);e.target.closest('[data-aclist]').querySelectorAll('.acr').forEach(d=>{d.style.display=!k||d.dataset.n.includes(k)?'flex':'none'})}});
 // ----- تعيين مسئولي الحضرات (للمشرف) -----
 const mgrBadge=uid=>{const s=mgrMap.get(uid);return s&&s.size?`<span class="b" style="background:#dff0fb;color:#145c85">مسئول: ${[...s].slice(0,3).map(hnm).join('، ')}${s.size>3?' +'+ar(s.size-3):''}</span>`:''};
 document.addEventListener('click',async e=>{
