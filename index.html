@@ -180,6 +180,7 @@ nav button.on svg{stroke:var(--gold)}
 <label>الحضرة<select id="p-h"></select></label>
 <label>اسم الحضرة (إن لم تكن ضمن الدليل)<input id="p-ht"></label>
 <label>العنوان<textarea id="p-addr" rows="2"></textarea></label>
+<div id="p-mhw" hidden><div class="small" style="margin:8px 0 4px">الحضرات المسئول عنها</div><div class="mgl" id="p-mh"></div></div>
 <label>رقم القطاع<input id="p-sec" inputmode="numeric" dir="ltr" placeholder="مثال: 10"></label>
 <label>المرشد (اختر من قائمة المريدين)<input id="pm-q" placeholder="اكتب جزءًا من الاسم للتصفية"><select id="pm" size="6"></select></label>
 <div id="p-msg" class="note" hidden></div>
@@ -271,6 +272,7 @@ nav.many button{font-size:11px}
 .sb{width:34px;height:34px;border-radius:12px;border:2px solid var(--bd);background:var(--card);font-size:17px;font-weight:800;color:var(--mu);margin-inline:1px;padding:0}
 .sb.y.on{background:#168a52;border-color:#168a52;color:#fff}.sb.n.on{background:#c0392b;border-color:#c0392b;color:#fff}
 .mwt tfoot td{background:#e4f3ea;font-weight:700;padding:10px 8px;border-bottom:0}
+#ped .mgl label{display:flex;align-items:center;gap:6px;margin:0;font-weight:400;font-size:14px}#ped .mgl input{width:auto;margin:0;flex:none}
 .mgl{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;max-height:240px;overflow:auto;background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:8px}.mgl label{font-size:14px;display:flex;gap:6px;align-items:center}
 </style>
 <nav>
@@ -419,8 +421,11 @@ async function refresh(){
     ADMIN=!!a.data;
     const p=await sb.from('profiles').select('*').eq('user_id',session.user.id).maybeSingle();if(p.error)throw p.error;
     me=p.data;const st=ADMIN?'approved':(me?me.status:'pending');
-    try{const mh=await sb.from('hadra_managers').select('hadra_id').eq('user_id',myId);MYH=mh.error?[]:(mh.data||[]).map(x=>+x.hadra_id)}catch(_){MYH=[]}
-    EDITH=new Set();if(st==='approved'&&!ADMIN){try{const ha=await sb.from('hadra_access').select('hadra_id,can_edit').eq('user_id',myId);if(!ha.error)EDITH=new Set((ha.data||[]).filter(x=>x.can_edit).map(x=>+x.hadra_id))}catch(_){}}
+    PERM={role:'none',level:'view',hadras:[]};
+    if(st==='approved'){try{const pr=await sb.rpc('my_perm');
+      if(!pr.error&&pr.data)PERM={role:pr.data.role,level:pr.data.level,hadras:(pr.data.hadras||[]).map(Number)};
+      else{const mh=await sb.from('hadra_managers').select('hadra_id').eq('user_id',myId),L=mh.error?[]:(mh.data||[]).map(x=>+x.hadra_id);PERM={role:(me&&me.can_db)?'general':(L.length?'manager':'none'),level:L.length?'edit':'view',hadras:L}}}catch(_){}}
+    MYH=PERM.hadras;
     setAccess();
     if(st==='approved'){hideGate();afterApproved()}else if(await getPub()){booted=false;hideGate();$('#adminLogin').hidden=false;load()}else{booted=false;items=[];renderAll();showGate(st)}
   }catch(err){
@@ -459,13 +464,11 @@ function renderReqs(){
   const L=reqs.filter(r=>!k||norm(r.name+' '+r.phone).includes(k)).sort((a,b)=>order[a.status]-order[b.status]);
   $('#reqs').innerHTML=L.length?L.map(r=>{const [lab,cl]=ST[r.status]||['',''];
     const d=new Date(r.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short'});
-    const btns=(r.status==='pending'?`<button class="call" data-acc="${r.user_id}" data-new="1">قبول…</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="${r.can_db?'':'call'}" data-dbp="${r.user_id}" data-v="${r.can_db?0:1}">${r.can_db?'سحب سماحية قاعدة البيانات':'منح سماحية قاعدة البيانات'}</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
-     +(r.status==='approved'?`<button data-acc="${r.user_id}">الحضرات المسموحة</button>`:'')
-     +(r.status==='approved'?`<button data-mgr="${r.user_id}">مسئول حضرة</button>`:'')
+    const btns=(r.status==='pending'?`<button class="call" data-acc="${r.user_id}" data-new="1">قبول…</button><button data-rq="rejected" data-u="${r.user_id}">رفض</button>`:r.status==='approved'?`<button data-rq="suspended" data-u="${r.user_id}">إيقاف</button><button class="call" data-perm="${r.user_id}">الصلاحيات</button>`:`<button class="call" data-rq="approved" data-u="${r.user_id}">قبول</button>`)
      +(r.status==='approved'&&r.user_id!==myId?`<button data-adm="${r.user_id}" data-v="${adminSet.has(r.user_id)?0:1}">${adminSet.has(r.user_id)?'إلغاء الإشراف':'ترقية إلى مشرف'}</button>`:'')
      +((r.status==='approved'||r.status==='rejected')?`<a href="${waMsg(r)}" target="_blank" rel="noopener">إبلاغ واتساب</a>`:'')
      +`<button data-del="${r.user_id}">حذف / إعادة تفعيل</button>`;
-    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}${mgrBadge(r.user_id)}${accBadge(r)}<span class="b ${r.can_db?'t':'w'}">${r.can_db?'لديه سماحية قاعدة البيانات':'بلا سماحية قاعدة البيانات'}</span></div>`:''}<div class="acts">${btns}</div><div class="mgbox" data-mgbox="${r.user_id}"></div><div class="mgbox" data-acbox="${r.user_id}"></div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
+    return `<article class="card req"><span class="b ${cl} st">${lab}</span><h3>${esc(r.name)}</h3><div class="small"><bdi dir="ltr">${esc(r.phone)}</bdi> · ${d}</div>${r.status==='approved'?`<div class="badges" style="margin-top:6px">${adminSet.has(r.user_id)?'<span class="b" style="background:var(--gold);color:#fff">مشرف</span>':''}${permBadge(r)}${accBadge(r)}</div>`:''}<div class="acts">${btns}</div><div class="mgbox" data-acbox="${r.user_id}"></div></article>`}).join(''):'<div class="empty">لا توجد نتائج.</div>'}
 document.addEventListener('click',async e=>{
   const am=e.target.closest('[data-adm]');
   if(am){if(am.dataset.armed!=='1'){am.dataset.armed='1';am.textContent=am.dataset.v==='1'?'تأكيد الترقية':'تأكيد الإلغاء';return}
@@ -485,7 +488,7 @@ document.addEventListener('click',async e=>{
     const {error}=await sb.rpc('admin_delete_user',{uid:del.dataset.del});if(!error)loadReqs();else del.textContent='تعذر الحذف'}
 });
 // ===== قاعدة البيانات (للمشرف ومن يمنحه المشرف السماحية) =====
-let CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbst='',dbq='',dbh='',dbsec='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
+let CAN_PW=false,PERM={role:'none',level:'view',hadras:[]},CAN_DB=false,people=[],PM=new Map(),DC=new Map(),dbv='m',dbs='age',dbst='',dbq='',dbh='',dbsec='',shown=60,shStack=[],shCur=null,pEd=null,subP=null,rqQ='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cntM=n=>n===1?'مريد واحد':n===2?'مريدان':n<=10?ar(n)+' مريدين':ar(n)+' مريدًا';
 const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ar');
@@ -516,12 +519,12 @@ async function applyPhotos(root=document){const els=[...root.querySelectorAll('[
 function withGroups(a,render,key,all){all=all||a;let out='',kk=false,nn=false;const kn=all.filter(isKid).length,nd=all.filter(p=>!p.birth_date).length;
   for(const p of a){if(key==='age'){if(!kk&&isKid(p)){kk=true;out+=`<div class="grp">${KIDH} · ${ar(kn)}</div>`}if(!nn&&!p.birth_date){nn=true;out+=`<div class="grp">${NOBH} · ${ar(nd)}</div>`}}out+=render(p)}return out}
 function setAccess(){
-  CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&me.can_db));CAN_MW=!!(ADMIN||(me&&me.status==='approved'&&MYH.length));$('#nav-mw').hidden=!CAN_MW;
+  CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&PERM.role!=='none'));CAN_MW=CAN_DB;CAN_PW=!!(ADMIN||(CAN_DB&&PERM.level==='edit'));$('#nav-mw').hidden=!CAN_MW;
   $('#nav-db').hidden=!CAN_DB;$('#nav-admin').hidden=!ADMIN;$('#adminBox').hidden=!ADMIN;
   if(!CAN_DB){people=[];PM=new Map();DC=new Map();closeSheet()}
   document.querySelector('nav').classList.toggle('many',[...document.querySelectorAll('nav button')].filter(b=>!b.hidden).length>5);
   const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN)||(cur==='p-mw'&&!CAN_MW))go('home');
-  $('#addPerson').hidden=!ADMIN}
+  $('#addPerson').hidden=!CAN_PW}
 async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
   for(;;){const {data,error}=await sb.from('people').select('*').order('id').range(from,from+999);if(error)return;all=all.concat(data);if(data.length<1000)break;from+=1000}
   people=all;PM=new Map(all.map(p=>[p.id,p]));DC=new Map();all.forEach(p=>{if(p.murshid_id)DC.set(p.murshid_id,(DC.get(p.murshid_id)||0)+1)});
@@ -536,7 +539,7 @@ function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p
   <div class="row">${ic('home')}<span>${hLink(p)}</span></div>
   ${p.murshid_id?`<div class="row">${ic('user')}<span>المرشد: ${pLink(p.murshid_id)}</span></div>`:''}
   <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div></div>${av(p)}</div>
-  ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</article>`}
+  ${(ok||CAN_PW)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${CAN_PW?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</article>`}
 function dbList(){let a=people;
   if(dbv==='m')a=a.filter(p=>!isDep(p));else if(dbv==='s')a=a.filter(p=>DC.get(p.id)&&!isDep(p));else if(dbv==='d')a=a.filter(isDep);else if(dbv==='k')a=a.filter(isKid);
   if(dbst==='none')a=a.filter(p=>!p.stage);else if(dbst)a=a.filter(p=>p.stage===dbst);
@@ -565,8 +568,8 @@ function listLinks(arr,withH,grp=true){if(!arr.length)return '<div class="small"
   const a=ageOf(p);return h+`<div class="lr">${av(p)}<span><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${roleB(p)?' '+roleB(p):''}${a!==null?` <span class="small">· ${ar(a)} سنة</span>`:''}${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?`<br><span class="small">${hLink(p)}</span>`:''}</span></div>`}).join('')}</div>`}
 function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byAge),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
   return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${stageB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد | ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
-  <div class="card">${kv('الحضرة',hLink(p))}${kv('رقم القطاع',esc(ar(p.sector_no||'')))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
-  ${(ok||ADMIN)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${ADMIN?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
+  <div class="card">${kv('الحضرة',hLink(p))}${isDep(p)&&(p.managed_hadras||[]).length?kv('الحضرات المسئول عنها',p.managed_hadras.map(id=>{const h=items.find(i=>i.id===id);return h?`<a class="lk" data-hadra="${h.id}">${esc(h.name)}</a>`:''}).filter(Boolean).join('، ')):''}${kv('رقم القطاع',esc(ar(p.sector_no||'')))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
+  ${(ok||CAN_PW)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${CAN_PW?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
   ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('القطاع',esc(ar(m.sector_no||'')))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
   ${kids.length?`<h2>المريدون (${ar(kids.length)})</h2>${listLinks(kids,true)}`:''}`}
 function sheetHadra(it){const ppl=people.filter(p=>p.hadra_id===it.id),ms=ppl.filter(p=>DC.get(p.id)).sort((a,b)=>DC.get(b.id)-DC.get(a.id));
@@ -621,17 +624,19 @@ function cropImage(file){return new Promise(async(resolve,reject)=>{
 $('#p-rmph').onclick=()=>{pFile=null;pRm=true;$('#p-file').value='';$('#p-rmph').hidden=true;$('#p-recrop').hidden=true;pOrig=null;setPAv(null)};
 function openPed(p){pEd=p||null;$('#pedt').textContent=p?'تعديل بيانات':'إضافة شخص';
   $('#p-name').value=p?.name||'';$('#p-birth').value=p?.birth_date||'';$('#p-nid').value=p?.national_id||'';$('#p-phone').value=p?.phone||'';$('#p-gov').value=p?.governorate||'';
-  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';$('#p-stage').value=p?.stage||'';$('#p-sec').value=p?.sector_no||'';
+  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';$('#p-stage').value=p?.stage||'';$('#p-sec').value=p?.sector_no||'';$('#p-mh').innerHTML=items.slice().sort(byName).map(i=>`<label><input type="checkbox" value="${i.id}" ${(p?.managed_hadras||[]).includes(i.id)?'checked':''}> ${esc(i.name)}</label>`).join('');syncMh();
   $('#p-ht').value=p?.hadra_text||'';$('#p-addr').value=p?.address||'';$('#pm-q').value='';fillPm('',p?.murshid_id||null);
   pFile=null;pRm=false;$('#p-file').value='';$('#p-rmph').hidden=!p?.photo_path;$('#p-recrop').hidden=!p?.photo_path;pOrig=null;setPAv(p);$('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
 const closePed=()=>{$('#ped').hidden=true};
+const syncMh=()=>{$('#p-mhw').hidden=!['deputy','deputy_general'].includes($('#p-role').value)};$('#p-role').addEventListener('change',syncMh);
 $('#p-cancel').onclick=closePed;$('#addPerson').onclick=()=>openPed(null);
 $('#pm-q').addEventListener('input',e=>fillPm(e.target.value,+$('#pm').value||null));
 const pmsg=s=>{const m=$('#p-msg');m.textContent=s;m.hidden=false};
-$('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;
+$('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!CAN_PW)return;
   const hv=$('#p-h').value,ph=$('#p-phone').value.replace(/\D/g,'');
   const row={name:$('#p-name').value.trim().replace(/\s+/g,' '),birth_date:$('#p-birth').value||null,national_id:$('#p-nid').value.replace(/\D/g,'')||null,phone:ph||null,governorate:$('#p-gov').value.trim()||null,
     role:$('#p-role').value||null,stage:$('#p-stage').value||null,sector_no:$('#p-sec').value.trim()||null,hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
+  if(['deputy','deputy_general'].includes(row.role)||(pEd&&(pEd.managed_hadras||[]).length))row.managed_hadras=['deputy','deputy_general'].includes(row.role)?[...document.querySelectorAll('#p-mh input:checked')].map(x=>+x.value):[];
   if(!row.name)return pmsg('اكتب الاسم.');
   let pid=pEd?.id,r;
   if(pEd)r=await sb.from('people').update(row).eq('id',pid);else{r=await sb.from('people').insert(row).select('id').single();pid=r.data?.id}
@@ -668,10 +673,10 @@ function exData(){const all=$('#ex-sc-all').checked;
       rows:L.map((it,i)=>[i+1,it.name,it.dayName,fmt(it.time),it.dar||'',it.address||'',it.manager||'',it.phone||'',it.map||''])}}
   const L=(all?allPeople():dbList().sort(byHadra));
   return {title:'دليل قطاع 10 — قاعدة البيانات',sheet:'قاعدة البيانات',file:'قاعدة-البيانات',land:true,
-    cols:[['م',5],['الاسم',28],['الصفة',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['رقم القطاع',11],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12]],
+    cols:[['م',5],['الاسم',28],['الصفة',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['رقم القطاع',11],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12],['الحضرات المسئول عنها',30]],
     pdfCols:[0,1,2,3,4,8,10,13,9],
     rows:L.map((p,i)=>{const a=ageOf(p),m=p.murshid_id&&PM.get(p.murshid_id);
-      return [i+1,p.name,typeOf(p),stageL(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.sector_no||'',p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0]})}}
+      return [i+1,p.name,typeOf(p),stageL(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.sector_no||'',p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0,isDep(p)?(p.managed_hadras||[]).map(id=>(items.find(i=>i.id===id)||{}).name).filter(Boolean).join('، '):'']})}}
 function loadScript(src){return new Promise((ok,no)=>{if(window.ExcelJS)return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load'));document.head.appendChild(s)})}
 async function exportXlsx(){const d=exData();if(!d.rows.length)return exMsg('لا توجد بيانات لتصديرها.');exMsg('جارٍ تجهيز ملف Excel…');
   try{await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js')}catch(e){return exportCsv(d)}
@@ -737,7 +742,8 @@ function optsAdmin(){return `<details id="mwopts" style="margin-top:14px" ${mwOp
   [['mode','وسيلة الحضور'],['reason','سبب عدم الحضور']].map(([k,t])=>`<h2 style="font-size:16px">${t}</h2><div class="badges">${mwOpts[k].map(o=>`<span class="b">${esc(o.label)}${o.id?` <a data-oprm="${o.id}" style="cursor:pointer;color:#c0392b;font-weight:800">✕</a>`:''}</span>`).join('')||'<span class="small">لا توجد خيارات</span>'}</div>
   <div style="display:flex;gap:6px;margin-top:6px"><input class="in" data-opin="${k}" placeholder="خيار جديد" style="padding:10px"><button class="btn" style="width:auto;margin:0;padding:10px 16px" data-opadd="${k}">إضافة</button></div>`).join('')+
   `<div class="small" id="mwopm" style="margin-top:6px">${mwOpts.missing?'تعذر تحميل الخيارات: شغّل mawlid-update.sql.':''}</div></details>`}
-function renderMw(){
+function renderMw(){renderMw0();if(!(ADMIN||PERM.level==='edit'))document.querySelectorAll('#mwbody .mwt button,#mwbody .mwt select,#mwbody .mwt input').forEach(x=>x.disabled=true)}
+function renderMw0(){
   mwTotals();const hs=mwHadras();
   if(!hs.length){$('#mwbody').innerHTML='<div class="note">لا توجد حضرات مُسندة إليك بعد، أو لا يوجد مريدون مربوطون بحضراتك.</div>'+(ADMIN?optsAdmin():'');return}
   if(!hs.includes(mwH))mwH=hs[0];
@@ -746,6 +752,7 @@ function renderMw(){
   $('#mwbody').innerHTML=sel+`<div class="small" id="mwst" style="min-height:22px"></div>`+
   (A.length?mwTable(A,`<td>نسبة الحضور</td><td colspan="3"><b>${pctT(yes,A.length)}</b> — حضور ${ar(yes)} من ${ar(A.length)} · معتذرون ${ar(no)} · لم يُسجَّل ${ar(A.length-yes-no)}</td>`):'<div class="note">لا يوجد مريدون بالغون في هذه الحضرة.</div>')+
   (K.length?`<h2 style="margin-top:20px">الأطفال (أقل من ١٤ سنة)</h2><div class="small" style="margin-bottom:6px">لا يُحتسبون في إجمالي الحضور ولا في نسبته.</div>`+mwTable(K,`<td>الأطفال</td><td colspan="3">حضر ${ar(ky)} من ${ar(K.length)} (غير محسوبين في النسبة)</td>`):'')+
+  (ADMIN||PERM.level==='edit'?'':'<div class="note" style="margin-top:10px">صلاحيتك «رؤية فقط»: لا يمكنك تسجيل الحضور.</div>')+
   (ADMIN?`<details style="margin-top:14px"><summary class="b" style="cursor:pointer;display:inline-block">ملخص كل الحضرات</summary><div class="lst" style="margin-top:8px">${mwSum.slice().sort((a,b)=>hnm(a.hadra_id).localeCompare(hnm(b.hadra_id),'ar')).map(x=>`<div>${esc(hnm(x.hadra_id))} <span class="small">· حضور ${ar(x.yes)} من ${ar(x.total)} · <b>${pctT(x.yes,x.total)}</b></span></div>`).join('')}</div></details>
   ${optsAdmin()}<button class="btn o" id="mwreset" style="margin-top:14px">مسح كل التسجيلات (بداية مناسبة جديدة)</button>`:'')}
 document.addEventListener('toggle',e=>{if(e.target.id==='mwopts')mwOptOpen=e.target.open},true);
@@ -756,7 +763,7 @@ document.addEventListener('click',async e=>{
   const rm=e.target.closest('[data-oprm]');
   if(rm){const {error}=await sb.from('mawlid_options').delete().eq('id',rm.dataset.oprm);if(error){$('#mwopm').textContent='تعذر الحذف: '+error.message;return}mwOptOpen=true;loadMw()}});
 const mwS=s=>{const e=$('#mwst');if(e)e.textContent=s};
-async function saveAtt(pid){const x=mwRoster.find(r=>r.person_id==pid);if(!x)return;mwS('جارٍ الحفظ…');
+async function saveAtt(pid){const x=mwRoster.find(r=>r.person_id==pid);if(!x||!(ADMIN||PERM.level==='edit'))return;mwS('جارٍ الحفظ…');
   const {error}=await sb.from('attendance').upsert({person_id:x.person_id,status:x.status||null,mode:x.status==='yes'?(x.mode||null):null,reason:x.status==='no'?(x.reason||null):null,updated_by:myId,updated_at:new Date().toISOString()},{onConflict:'person_id'});
   mwS(error?'تعذر الحفظ: '+error.message:'تم الحفظ ✓')}
 document.addEventListener('click',async e=>{
@@ -776,6 +783,37 @@ document.addEventListener('change',e=>{
   if(isM)x.mode=v;else x.reason=v;
   saveAtt(x.person_id)});
 function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt'))loadMw()},45000)}
+// ----- الصلاحيات الموحدة (قاعدة البيانات + حضور المولد) -----
+const PR={none:'بدون',general:'نائب عموم',deputy:'نائب',manager:'مسئول حضرة',other:'غير ذلك'};
+const PDESC={none:'لا يرى تبويبي «قاعدة البيانات» و«حضور المولد».',general:'يطّلع على كامل بيانات التطبيق: كل المريدين والمرشدين وكل الحضرات.',deputy:'يطّلع على الحضرات التابعة له كما هي مسجّلة في «الحضرات المسئول عنها» ببيانات النائب (يُطابَق برقم موبايله).',manager:'يطّلع على الحضرة المسئول عنها فقط.',other:'اختر الحضرات التي يطّلع عليها.'};
+const permBadge=r=>{const ro=r.perm_role||'none';if(ro==='none')return '<span class="b w">بلا صلاحيات</span>';const n=(mgrMap.get(r.user_id)||new Set()).size;return `<span class="b t">${PR[ro]} · ${r.perm_level==='edit'?'تعديل':'رؤية فقط'}${(ro==='manager'||ro==='other')?' · '+ar(n)+' حضرة':''}</span>`};
+function depInfo(r){const k=normPhone(r.phone||'').slice(-10),d=k.length>=10&&people.find(p=>isDep(p)&&normPhone(p.phone||'').slice(-10)===k);
+  if(!d)return '<span style="color:#c0392b">لم يُعثر على نائب مسجّل بنفس رقم موبايل هذا العضو. سجّل رقمه في بيانات النائب.</span>';
+  const hs=(d.managed_hadras||[]).map(id=>(items.find(i=>i.id===id)||{}).name).filter(Boolean);
+  return `النائب المطابق: <b>${esc(d.name)}</b><br>الحضرات: ${hs.length?esc(hs.join('، ')):'<span style="color:#c0392b">لم تُحدَّد بعد في بياناته (الحضرات المسئول عنها).</span>'}`}
+function permPanel(uid){const r=reqs.find(x=>x.user_id===uid)||{},ro=r.perm_role||'none',lv=r.perm_level||'view';let sel=mgrMap.get(uid);
+  if(!sel||!sel.size)sel=new Set(items.filter(i=>i.phone&&i.phone===r.phone).map(i=>i.id));
+  return `<div class="small" style="margin:8px 0">الصلاحيات في تبويبي «قاعدة البيانات» و«حضور المولد»:</div>
+  <select class="in" data-prole style="margin-bottom:6px">${Object.keys(PR).map(k=>`<option value="${k}" ${k===ro?'selected':''}>${PR[k]}</option>`).join('')}</select>
+  <div class="small" data-pdesc style="margin-bottom:6px">${PDESC[ro]}</div>
+  <div data-plev ${ro==='none'?'hidden':''}><label style="margin-left:14px"><input type="radio" name="pl-${uid}" value="view" ${lv==='edit'?'':'checked'}> رؤية فقط</label><label><input type="radio" name="pl-${uid}" value="edit" ${lv==='edit'?'checked':''}> تعديل</label></div>
+  <div data-pdep class="small" style="margin-top:6px" ${ro==='deputy'?'':'hidden'}>${depInfo(r)}</div>
+  <div data-phl ${(ro==='manager'||ro==='other')?'':'hidden'}><input class="in" data-pq placeholder="بحث في الحضرات" style="margin:6px 0;padding:10px"><div class="mgl">${items.slice().sort(byName).map(i=>`<label data-n="${esc(norm(i.name))}"><input type="checkbox" data-ph value="${i.id}" ${sel.has(i.id)?'checked':''}> ${esc(i.name)}</label>`).join('')}</div></div>
+  <button class="btn" data-psave="${uid}" style="margin-top:8px">حفظ الصلاحيات</button><div class="small" data-pmsg></div>
+  <details style="margin-top:10px"><summary class="b" style="cursor:pointer;display:inline-block">رؤية دليل الحضرات (الصفحة الرئيسية)</summary>${accPanel(uid,false)}</details>`}
+document.addEventListener('click',async e=>{
+  const o=e.target.closest('[data-perm]');
+  if(o){const uid=o.dataset.perm,box=document.querySelector(`[data-acbox="${uid}"]`);if(box.innerHTML){box.innerHTML='';return}box.innerHTML=permPanel(uid);return}
+  const sv=e.target.closest('[data-psave]');
+  if(sv){const uid=sv.dataset.psave,box=sv.closest('[data-acbox]'),ro=box.querySelector('[data-prole]').value,lv=(box.querySelector('input[name^="pl-"]:checked')||{}).value||'view',m=box.querySelector('[data-pmsg]');
+    const hs=ro==='manager'||ro==='other'?[...box.querySelectorAll('input[data-ph]:checked')].map(x=>+x.value):[];
+    if((ro==='manager'||ro==='other')&&!hs.length){m.textContent=ro==='manager'?'اختر الحضرة المسئول عنها.':'اختر حضرة واحدة على الأقل.';return}
+    const {error}=await sb.rpc('admin_set_perm',{uid,prole:ro,plevel:lv,hadras:hs});
+    if(error){m.textContent='تعذر الحفظ: '+error.message+' (تأكد من تشغيل permissions.sql)';return}
+    loadReqs()}});
+document.addEventListener('change',e=>{if(e.target.matches('[data-prole]')){const b=e.target.closest('[data-acbox]'),ro=e.target.value;
+  b.querySelector('[data-pdesc]').textContent=PDESC[ro];b.querySelector('[data-plev]').hidden=ro==='none';b.querySelector('[data-pdep]').hidden=ro!=='deputy';b.querySelector('[data-phl]').hidden=!(ro==='manager'||ro==='other')}});
+document.addEventListener('input',e=>{if(e.target.matches('[data-pq]')){const k=norm(e.target.value);e.target.closest('[data-phl]').querySelectorAll('label[data-n]').forEach(l=>{l.style.display=!k||l.dataset.n.includes(k)?'':'none'})}});
 // ----- صلاحيات الحضرات لكل عضو (للمشرف) -----
 const accBadge=r=>{if(r.hadra_scope!=='selected')return '<span class="b t">يرى كل الحضرات</span>';const m=accMap.get(r.user_id)||new Map(),n=m.size,e=[...m.values()].filter(Boolean).length;return `<span class="b" style="background:#f0e6ff;color:#4b2e8f">${ar(n)} حضرة${e?` (${ar(e)} للتعديل)`:''}</span>`};
 function accPanel(uid,isNew){const r=reqs.find(x=>x.user_id===uid)||{},sel=r.hadra_scope==='selected',m=accMap.get(uid)||new Map();
@@ -789,7 +827,7 @@ document.addEventListener('click',async e=>{
   const o=e.target.closest('[data-acc]');
   if(o){const uid=o.dataset.acc,box=document.querySelector(`[data-acbox="${uid}"]`);if(box.innerHTML){box.innerHTML='';return}box.innerHTML=accPanel(uid,o.dataset.new==='1');return}
   const sv=e.target.closest('[data-acsave]');
-  if(sv){const uid=sv.dataset.acsave,box=sv.closest('[data-acbox]'),scope=box.querySelector('input[type=radio]:checked').value,msgEl=box.querySelector('[data-acmsg]');
+  if(sv){const uid=sv.dataset.acsave,box=sv.closest('[data-acbox]'),scope=box.querySelector('input[name^="sc-"]:checked').value,msgEl=box.querySelector('[data-acmsg]');
     const v=[],ed=[];box.querySelectorAll('select[data-h]').forEach(s=>{if(s.value==='v')v.push(+s.dataset.h);else if(s.value==='e')ed.push(+s.dataset.h)});
     if(scope==='selected'&&!v.length&&!ed.length){msgEl.textContent='اختر حضرة واحدة على الأقل، أو اختر «كل الحضرات».';return}
     const {error}=await sb.rpc('admin_set_access',{uid,scope,hadras:v,editable:ed});
