@@ -177,6 +177,7 @@ nav button.on svg{stroke:var(--gold)}
 <label>الرقم القومي<input id="p-nid" inputmode="numeric" dir="ltr"></label>
 <label>الموبايل<input id="p-phone" inputmode="tel" dir="ltr"></label>
 <label>الصفة<select id="p-role"><option value="">بلا صفة (مريد)</option><option value="deputy_general">نائب عام</option><option value="deputy">نائب</option><option value="khalifa_khulafa">خليفة خلفاء</option><option value="khalifa">خليفة</option></select></label>
+<label>الانتظام<select id="p-reg"><option value="regular">منتظم</option><option value="irregular">غير منتظم</option><option value="dropped">منقطع</option></select></label>
 <label>المرحلة<select id="p-stage"><option value="">— فارغة —</option><option value="first">الأولى</option><option value="second">الثانية</option><option value="third">الثالثة</option></select></label>
 <label>الحضرة<select id="p-h"></select></label>
 <label>اسم الحضرة (إن لم تكن ضمن الدليل)<input id="p-ht"></label>
@@ -504,6 +505,9 @@ const isKid=p=>{const a=ageOf(p);return a!==null&&a<14};
 const byAge=(x,y)=>{const a=x.birth_date,b=y.birth_date;if(a&&b)return a<b?-1:a>b?1:byName(x,y);if(a)return -1;if(b)return 1;return byName(x,y)};
 const bySort=k=>k==='name'?byName:k==='count'?(x,y)=>(DC.get(y.id)||0)-(DC.get(x.id)||0)||byName(x,y):byAge;
 const STG={first:'الأولى',second:'الثانية',third:'الثالثة'};
+const REG={regular:'منتظم',irregular:'غير منتظم',dropped:'منقطع'};
+const regL=p=>REG[p.regularity||'regular'];
+const regB=p=>p.regularity==='irregular'?'<span class="b w">غير منتظم</span>':p.regularity==='dropped'?'<span class="b r">منقطع</span>':'';
 const stageL=p=>STG[p.stage]||'';
 const stageB=p=>p.stage?`<span class="b" style="background:#e9e2fb;color:#4b3a8f">المرحلة ${STG[p.stage]}</span>`:'';
 const RL={deputy_general:'نائب عام',deputy:'نائب',khalifa_khulafa:'خليفة خلفاء',khalifa:'خليفة'},RS={deputy_general:'background:var(--gold);color:#fff',deputy:'background:#f6e27a;color:#6b4e00',khalifa_khulafa:'background:#1f6f4a;color:#fff',khalifa:'background:#d6efe0;color:#14532d'};
@@ -536,7 +540,7 @@ function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach
   s.innerHTML='<option value="">كل الحضرات</option>'+items.slice().sort(byName).filter(i=>cn.get(i.id)).map(i=>`<option value="${i.id}">${esc(i.name)} (${ar(cn.get(i.id))})</option>`).join('')+(cn.get(0)?`<option value="none">غير مرتبطة بحضرة (${ar(cn.get(0))})</option>`:'');s.value=v}
 function personCard(p){const ok=phoneOK(p.phone||''),n=DC.get(p.id)||0,a=ageOf(p);
   return `<article class="card pc"><div class="pg"><div class="pgi"><h3><a class="lk" data-person="${p.id}">${esc(p.name)}</a></h3>
-  <div class="badges">${roleB(p)}${stageB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد | ${cntM(n)}</span>`:''}${p.sector_no?`<span class="b">قطاع ${esc(ar(p.sector_no))}</span>`:''}</div>
+  <div class="badges">${roleB(p)}${stageB(p)}${regB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${a!==null?`<span class="b">${ar(a)} سنة</span>`:''}${n?`<span class="b t">مرشد | ${cntM(n)}</span>`:''}${p.sector_no?`<span class="b">قطاع ${esc(ar(p.sector_no))}</span>`:''}</div>
   <div class="row">${ic('home')}<span>${hLink(p)}</span></div>
   ${p.murshid_id?`<div class="row">${ic('user')}<span>المرشد: ${pLink(p.murshid_id)}</span></div>`:''}
   <div class="row">${ic('phone')}<span>${pPhone(p)}</span></div></div>${av(p)}</div>
@@ -568,8 +572,8 @@ function listLinks(arr,withH,grp=true){if(!arr.length)return '<div class="small"
   return `<div class="lst">${arr.map(p=>{let h='';if(grp){if(!kk&&isKid(p)){kk=true;h=`<div class="grp2">${KIDH}</div>`}if(!nn&&!p.birth_date){nn=true;h=`<div class="grp2">${NOBH}</div>`}}
   const a=ageOf(p);return h+`<div class="lr">${av(p)}<span><a class="lk" data-person="${p.id}">${esc(p.name)}</a>${roleB(p)?' '+roleB(p):''}${a!==null?` <span class="small">· ${ar(a)} سنة</span>`:''}${DC.get(p.id)?` <span class="b">${cntM(DC.get(p.id))}</span>`:''}${withH&&hName(p)?`<br><span class="small">${hLink(p)}</span>`:''}</span></div>`}).join('')}</div>`}
 function sheetPerson(p){const kids=people.filter(x=>x.murshid_id===p.id).sort(byAge),ok=phoneOK(p.phone||''),m=p.murshid_id&&PM.get(p.murshid_id);
-  return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${stageB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد | ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
-  <div class="card">${kv('الحضرة',hLink(p))}${isDep(p)&&(p.managed_hadras||[]).length?kv('الحضرات المسئول عنها',p.managed_hadras.map(id=>{const h=items.find(i=>i.id===id);return h?`<a class="lk" data-hadra="${h.id}">${esc(h.name)}</a>`:''}).filter(Boolean).join('، ')):''}${kv('رقم القطاع',esc(ar(p.sector_no||'')))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
+  return `<div class="pg" style="margin-top:12px"><div class="pgi"><h2 class="shh" style="margin-top:0">${esc(p.name)}</h2><div class="badges">${roleB(p)}${stageB(p)}${regB(p)}${isKid(p)?'<span class="b w">طفل</span>':''}${ageOf(p)!==null?`<span class="b">${ar(ageOf(p))} سنة</span>`:''}${kids.length?`<span class="b t">مرشد | ${cntM(kids.length)}</span>`:''}</div></div>${av(p,true)}</div>
+  <div class="card">${kv('الانتظام',regL(p))}${kv('الحضرة',hLink(p))}${isDep(p)&&(p.managed_hadras||[]).length?kv('الحضرات المسئول عنها',p.managed_hadras.map(id=>{const h=items.find(i=>i.id===id);return h?`<a class="lk" data-hadra="${h.id}">${esc(h.name)}</a>`:''}).filter(Boolean).join('، ')):''}${kv('رقم القطاع',esc(ar(p.sector_no||'')))}${kv('المحافظة',esc(p.governorate))}${kv('العنوان',esc(p.address))}${kv('الموبايل',p.phone?pPhone(p):'')}${kv('تاريخ الميلاد',dt(p.birth_date))}${kv('الرقم القومي',p.national_id?`<bdi dir="ltr">${esc(p.national_id)}</bdi>`:'')}
   ${(ok||CAN_PW)?`<div class="acts">${ok?`<a class="call" href="tel:${p.phone}">${ic('phone')}اتصال</a><a target="_blank" rel="noopener" href="https://wa.me/20${p.phone.slice(1)}">${ic('chat')}واتساب</a>`:''}${CAN_PW?`<button data-pedit="${p.id}">${ic('user')}تعديل</button>`:''}</div>`:''}</div>
   ${m?`<h2>المرشد</h2><div class="card">${kv('الاسم',pLink(m.id))}${kv('الحضرة',hLink(m))}${kv('القطاع',esc(ar(m.sector_no||'')))}${kv('الموبايل',m.phone?pPhone(m):'')}</div>`:''}
   ${kids.length?`<h2>المريدون (${ar(kids.length)})</h2>${listLinks(kids,true)}`:''}`}
@@ -625,7 +629,7 @@ function cropImage(file){return new Promise(async(resolve,reject)=>{
 $('#p-rmph').onclick=()=>{pFile=null;pRm=true;$('#p-file').value='';$('#p-rmph').hidden=true;$('#p-recrop').hidden=true;pOrig=null;setPAv(null)};
 function openPed(p){pEd=p||null;$('#pedt').textContent=p?'تعديل بيانات':'إضافة شخص';
   $('#p-name').value=p?.name||'';$('#p-birth').value=p?.birth_date||'';$('#p-nid').value=p?.national_id||'';$('#p-phone').value=p?.phone||'';$('#p-gov').value=p?.governorate||'';
-  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';$('#p-stage').value=p?.stage||'';$('#p-sec').value=p?.sector_no||'';$('#p-mh').innerHTML=items.slice().sort(byName).map(i=>`<label><input type="checkbox" value="${i.id}" ${(p?.managed_hadras||[]).includes(i.id)?'checked':''}> ${esc(i.name)}</label>`).join('');syncMh();
+  $('#p-h').innerHTML='<option value="">— غير مرتبطة —</option>'+items.slice().sort(byName).map(i=>`<option value="${i.id}">${esc(i.name)}</option>`).join('');$('#p-h').value=p?.hadra_id||'';$('#p-role').value=p?.role||'';$('#p-stage').value=p?.stage||'';$('#p-sec').value=p?.sector_no||'';$('#p-reg').value=p?.regularity||'regular';$('#p-mh').innerHTML=items.slice().sort(byName).map(i=>`<label><input type="checkbox" value="${i.id}" ${(p?.managed_hadras||[]).includes(i.id)?'checked':''}> ${esc(i.name)}</label>`).join('');syncMh();
   $('#p-ht').value=p?.hadra_text||'';$('#p-addr').value=p?.address||'';$('#pm-q').value='';fillPm('',p?.murshid_id||null);
   pFile=null;pRm=false;$('#p-file').value='';$('#p-rmph').hidden=!p?.photo_path;$('#p-recrop').hidden=!p?.photo_path;pOrig=null;setPAv(p);$('#p-msg').hidden=true;$('#p-del').hidden=!p;$('#p-del').textContent='حذف الشخص';$('#ped').hidden=false}
 const closePed=()=>{$('#ped').hidden=true};
@@ -638,6 +642,7 @@ $('#pedf').onsubmit=async e=>{e.preventDefault();if(!sb||!CAN_PW)return;
   const row={name:$('#p-name').value.trim().replace(/\s+/g,' '),birth_date:$('#p-birth').value||null,national_id:$('#p-nid').value.replace(/\D/g,'')||null,phone:ph||null,governorate:$('#p-gov').value.trim()||null,
     role:$('#p-role').value||null,stage:$('#p-stage').value||null,sector_no:$('#p-sec').value.trim()||null,hadra_id:hv?+hv:null,hadra_text:hv?null:($('#p-ht').value.trim()||null),address:$('#p-addr').value.trim()||null,murshid_id:$('#pm').value?+$('#pm').value:null};
   if(['deputy','deputy_general'].includes(row.role)||(pEd&&(pEd.managed_hadras||[]).length))row.managed_hadras=['deputy','deputy_general'].includes(row.role)?[...document.querySelectorAll('#p-mh input:checked')].map(x=>+x.value):[];
+  if($('#p-reg').value!=='regular'||(pEd&&pEd.regularity))row.regularity=$('#p-reg').value;
   if(!row.name)return pmsg('اكتب الاسم.');
   let pid=pEd?.id,r;
   if(pEd)r=await sb.from('people').update(row).eq('id',pid);else{r=await sb.from('people').insert(row).select('id').single();pid=r.data?.id}
@@ -681,10 +686,10 @@ function exData(){const all=$('#ex-sc-all').checked;
       rows:L.map((it,i)=>[i+1,it.name,it.dayName,fmt(it.time),it.dar||'',it.address||'',it.manager||'',it.phone||'',it.map||''])}}
   const L=(all?allPeople():dbList().sort(byHadra));
   return {title:'دليل قطاع 10 — قاعدة البيانات',sheet:'قاعدة البيانات',file:'قاعدة-البيانات',land:true,
-    cols:[['م',5],['الاسم',28],['الصفة',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['رقم القطاع',11],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12],['الحضرات المسئول عنها',30]],
+    cols:[['م',5],['الاسم',28],['الصفة',11],['المرحلة',11],['السن',7],['الفئة العمرية',13],['تاريخ الميلاد',13],['الرقم القومي',18],['الموبايل',15],['المحافظة',13],['الحضرة',20],['رقم القطاع',11],['العنوان',36],['المرشد',26],['موبايل المرشد',15],['عدد المريدين',12],['الحضرات المسئول عنها',30],['الانتظام',12]],
     pdfCols:[0,1,2,3,4,8,10,13,9],
     rows:L.map((p,i)=>{const a=ageOf(p),m=p.murshid_id&&PM.get(p.murshid_id);
-      return [i+1,p.name,typeOf(p),stageL(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.sector_no||'',p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0,isDep(p)?(p.managed_hadras||[]).map(id=>(items.find(i=>i.id===id)||{}).name).filter(Boolean).join('، '):'']})}}
+      return [i+1,p.name,typeOf(p),stageL(p),a===null?'':a,a===null?'غير محدد':a<14?'طفل':'بالغ',p.birth_date||'',p.national_id||'',p.phone||'',p.governorate||'',hName(p),p.sector_no||'',p.address||'',m?m.name:'',m?.phone||'',DC.get(p.id)||0,isDep(p)?(p.managed_hadras||[]).map(id=>(items.find(i=>i.id===id)||{}).name).filter(Boolean).join('، '):'',regL(p)]})}}
 function loadScript(src){return new Promise((ok,no)=>{if(window.ExcelJS)return ok();const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load'));document.head.appendChild(s)})}
 async function exportXlsx(){const d=exData();if(!d.rows.length)return exMsg('لا توجد بيانات لتصديرها.');exMsg('جارٍ تجهيز ملف Excel…');
   try{await loadScript('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js')}catch(e){return exportCsv(d)}
