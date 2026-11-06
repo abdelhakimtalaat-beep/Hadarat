@@ -124,7 +124,7 @@ nav button.on svg{stroke:var(--gold)}
 </section>
 
 <section class="page" id="p-mw">
-  <div class="mini"><img src="logo-y.png" alt=""><b>حضور المولد</b></div>
+  <div class="mini"><img src="logo-y.png" alt=""><b>المناسبات</b></div>
   <div class="wrap" style="padding-top:14px">
     <div class="card" id="mwtot" style="text-align:center"></div>
     <button class="btn o" id="exM" style="margin:10px 0">⬇ تصدير Excel / PDF</button>
@@ -279,7 +279,7 @@ nav.many button{font-size:11px}
 <nav>
   <button data-go="home" class="on"><svg width="24" height="24"><use href="#i-list"/></svg>الحضرات</button>
   <button data-go="db" id="nav-db" hidden><svg width="24" height="24"><use href="#i-db"/></svg>قاعدة البيانات</button>
-  <button data-go="mw" id="nav-mw" hidden><svg width="24" height="24"><use href="#i-cal"/></svg>حضور المولد</button>
+  <button data-go="mw" id="nav-mw" hidden><svg width="24" height="24"><use href="#i-cal"/></svg>المناسبات</button>
   <button data-go="admin" id="nav-admin" hidden><svg width="24" height="24"><use href="#i-shield"/></svg>الإشراف</button>
   <button data-go="more"><svg width="24" height="24"><use href="#i-more"/></svg>المزيد</button>
 </nav>
@@ -663,14 +663,14 @@ const byHadra=(a,b)=>{const x=hName(a),y=hName(b);if(x&&y){const c=x.localeCompa
 const allPeople=()=>people.slice().sort(byHadra);
 function openEx(c){exCtx=c;const cur=c==='h'?dirRows().length:c==='m'?mwRoster.filter(x=>x.hadra_id===mwH).length:dbList().length,all=c==='h'?items.length:c==='m'?mwRoster.length:people.length;
   $('#ex-all').textContent=`الكل (${ar(all)})`;$('#ex-cur').textContent=c==='m'?`الحضرة المعروضة حاليًا (${ar(cur)})`:`المعروض حاليًا بحسب البحث والتصفية (${ar(cur)})`;
-  $('#ex-t').textContent=c==='h'?'تصدير دليل الحضرات':c==='m'?'تصدير حضور المولد':'تصدير قاعدة البيانات';$('#ex-m').hidden=true;$('#ex-sc-all').checked=true;$('#ex').hidden=false}
+  $('#ex-t').textContent=c==='h'?'تصدير دليل الحضرات':c==='m'?'تصدير المناسبات':'تصدير قاعدة البيانات';$('#ex-m').hidden=true;$('#ex-sc-all').checked=true;$('#ex').hidden=false}
 $('#exH').onclick=()=>openEx('h');$('#exD').onclick=()=>openEx('d');$('#exM').onclick=()=>openEx('m');$('#ex-x').onclick=()=>{$('#ex').hidden=true};
 const exMsg=s=>{const m=$('#ex-m');m.textContent=s;m.hidden=!s};
 function exData(){const all=$('#ex-sc-all').checked;
   if(exCtx==='m'){const L=(all?mwRoster.slice().sort((a,b)=>hnm(a.hadra_id).localeCompare(hnm(b.hadra_id),'ar')):mwRoster.filter(x=>x.hadra_id===mwH));
     const S=all?mwSum:mwSum.filter(x=>x.hadra_id===mwH),n=S.reduce((a,x)=>a+x.total,0),y=S.reduce((a,x)=>a+x.yes,0);
     const stL=s=>s==='yes'?'حضر':s==='no'?'لم يحضر':'لم يُسجَّل';
-    return {title:`دليل قطاع 10 — حضور «${evName(mwEv)}» — ${all?'كل الحضرات':hnm(mwH)} — حضور ${ar(y)} من ${ar(n)} (${pctT(y,n)}) دون الأطفال`,sheet:'حضور المولد',file:'حضور-المولد',land:true,
+    return {title:`دليل قطاع 10 — حضور «${evName(mwEv)}» — ${all?'كل الحضرات':hnm(mwH)} — حضور ${ar(y)} من ${ar(n)} (${pctT(y,n)}) دون الأطفال`,sheet:'المناسبات',file:'المناسبات',land:true,
       cols:[['م',5],['الاسم',28],['الصفة',12],['الحضرة',22],['الفئة',16],['الحضور',12],['وسيلة الحضور',18],['سبب عدم الحضور',24]],
       pdfCols:[0,1,2,3,4,5,6,7],
       rows:L.map((x,i)=>[i+1,x.name,RL[x.role]||'مريد',hnm(x.hadra_id),x.is_child?'طفل (غير محسوب)':'بالغ',stL(x.status),x.status==='yes'?(x.mode||''):'',x.status==='no'?(x.reason||''):''])}}
@@ -723,7 +723,7 @@ td{padding:5px;border:1px solid #d6e6db;vertical-align:top}tr:nth-child(even) td
 $('#ex-xl').onclick=exportXlsx;$('#ex-pdf').onclick=exportPdf;
 // ===== حضور المولد =====
 let CAN_MW=false,MYH=[],mwRoster=[],mwSum=[],mwH=null,mgrMap=new Map(),mwTimer=null,mwOpts={mode:[],reason:[]},mwOptOpen=false,mwEvents=[],mwEv=null,mwCur=null,mwLegacy=false,mwEvOpen=false;
-const mwRO=()=>!(ADMIN||PERM.level==='edit')||(!mwLegacy&&mwEv!==mwCur);
+const mwRO=()=>!(ADMIN||PERM.level==='edit')||(!mwLegacy&&(mwCur==null||mwEv!==mwCur));
 const DEF_MODES=['سيارة ملاكي','أتوبيس','ميكروباص'],DEF_REASONS=['ظروف العمل','ظروف مرضية','السفر للخارج','كبر السن/صعوبة الحركة'];
 const pct=(a,b)=>b?Math.round(a*1000/b)/10:0;
 const pctT=(a,b)=>ar(String(pct(a,b)).replace('.','٫'))+'٪';
@@ -731,7 +731,7 @@ const hnm=id=>(items.find(i=>i.id===id)||{}).name||('حضرة '+id);
 async function loadMw(){if(!CAN_MW||!sb)return;
   const ev=await sb.from('mawlid_events').select('*').order('id',{ascending:false});
   mwLegacy=!!ev.error;mwEvents=ev.error?[]:(ev.data||[]);const cu=mwEvents.find(x=>!x.closed_at);mwCur=cu?cu.id:null;
-  if(!mwEvents.some(x=>x.id===mwEv))mwEv=mwCur;
+  if(!mwEvents.some(x=>x.id===mwEv))mwEv=mwCur!=null?mwCur:(mwEvents[0]?mwEvents[0].id:null);
   const arg=mwLegacy?undefined:{ev:mwEv};
   const [r,s,o]=await Promise.all([sb.rpc('mawlid_roster',arg),sb.rpc('mawlid_summary',arg),sb.from('mawlid_options').select('*').order('sort').order('id')]);
   if(r.error||s.error){$('#mwbody').innerHTML='<div class="note">تعذر تحميل البيانات: '+esc((r.error||s.error).message)+' (تأكد من تشغيل mawlid-events.sql)</div>';return}
@@ -765,7 +765,7 @@ function renderMw0(){
   $('#mwbody').innerHTML=sel+`<div class="small" id="mwst" style="min-height:22px"></div>`+
   (A.length?mwTable(A,`<td>نسبة الحضور</td><td colspan="3"><b>${pctT(yes,A.length)}</b> — حضور ${ar(yes)} من ${ar(A.length)} · معتذرون ${ar(no)} · لم يُسجَّل ${ar(A.length-yes-no)}</td>`):'<div class="note">لا يوجد مريدون بالغون في هذه الحضرة.</div>')+
   (K.length?`<h2 style="margin-top:20px">الأطفال (أقل من ١٤ سنة)</h2><div class="small" style="margin-bottom:6px">لا يُحتسبون في إجمالي الحضور ولا في نسبته.</div>`+mwTable(K,`<td>الأطفال</td><td colspan="3">حضر ${ar(ky)} من ${ar(K.length)} (غير محسوبين في النسبة)</td>`):'')+
-  (mwRO()?`<div class="note" style="margin-top:10px">${(!mwLegacy&&mwEv!==mwCur)?'هذه مناسبة محفوظة، للاطلاع والتصدير فقط.':'صلاحيتك «رؤية فقط»: لا يمكنك تسجيل الحضور.'}</div>`:'')+
+  (mwRO()?`<div class="note" style="margin-top:10px">${(!mwLegacy&&mwEv!==mwCur)?(mwCur==null?'لا توجد مناسبة حالية. أضف مناسبة جديدة (للمشرف) لبدء التسجيل.':'هذه مناسبة محفوظة، للاطلاع والتصدير فقط.'):'صلاحيتك «رؤية فقط»: لا يمكنك تسجيل الحضور.'}</div>`:'')+
   (ADMIN?`<details style="margin-top:14px"><summary class="b" style="cursor:pointer;display:inline-block">ملخص كل الحضرات</summary><div class="lst" style="margin-top:8px">${mwSum.slice().sort((a,b)=>hnm(a.hadra_id).localeCompare(hnm(b.hadra_id),'ar')).map(x=>`<div>${esc(hnm(x.hadra_id))} <span class="small">· حضور ${ar(x.yes)} من ${ar(x.total)} · <b>${pctT(x.yes,x.total)}</b></span></div>`).join('')}</div></details>
   ${optsAdmin()}<button class="btn o" id="mwreset" style="margin-top:14px">مسح تسجيلات المناسبة الحالية</button>`:'')}
 document.addEventListener('toggle',e=>{if(e.target.id==='mwopts')mwOptOpen=e.target.open},true);
@@ -777,13 +777,13 @@ document.addEventListener('click',async e=>{
   if(rm){const {error}=await sb.from('mawlid_options').delete().eq('id',rm.dataset.oprm);if(error){$('#mwopm').textContent='تعذر الحذف: '+error.message;return}mwOptOpen=true;loadMw()}});
 const evName=id=>(mwEvents.find(x=>x.id===id)||{}).name||'المولد';
 const evDate=x=>new Date(x.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short',year:'numeric'});
-function mwEvBar(){if(mwLegacy)return ADMIN?'<div class="note">لحفظ المناسبات وبدء مناسبة جديدة شغّل mawlid-events.sql في Supabase.</div>':'';
+function mwEvBar(){if(mwLegacy)return ADMIN?'<div class="note">لإضافة المناسبات وحذفها شغّل mawlid-events.sql في Supabase.</div>':'';
   const sel=mwEvents.find(x=>x.id===mwEv)||{};
   return `<div id="mwbar" style="margin-bottom:10px"><select id="mwev" class="in" style="margin-bottom:6px">${mwEvents.map(x=>`<option value="${x.id}" ${x.id===mwEv?'selected':''}>${esc(x.name)} — ${evDate(x)}${x.closed_at?' (محفوظة)':' (الحالية)'}</option>`).join('')}</select>`+
-  (ADMIN?`<details id="mwevd" ${mwEvOpen?'open':''}><summary class="b" style="cursor:pointer;display:inline-block">إدارة المناسبات</summary>
+  (ADMIN?`<details id="mwevd" ${mwEvOpen?'open':''}><summary class="b" style="cursor:pointer;display:inline-block">إضافة / حذف المناسبات</summary>
   <div class="small" style="margin:8px 0 4px">اسم المناسبة المعروضة</div><div style="display:flex;gap:6px"><input class="in" id="mwrenin" value="${esc(sel.name||'')}" maxlength="80" style="padding:10px"><button class="btn" id="mwrenbtn" style="width:auto;margin:0;padding:10px 16px">حفظ الاسم</button></div>
-  <div class="small" style="margin:10px 0 4px">حفظ المناسبة الحالية في الأرشيف وبدء مناسبة جديدة فارغة</div><div style="display:flex;gap:6px"><input class="in" id="mwnewin" placeholder="اسم المناسبة الجديدة (مثال: مولد ١٤٤٨)" maxlength="80" style="padding:10px"><button class="btn" id="mwnewbtn" style="width:auto;margin:0;padding:10px 16px">بدء جديدة</button></div>
-  ${(sel.closed_at)?'<button class="btn o" id="mwdelev" style="margin-top:10px">حذف هذه المناسبة المحفوظة نهائيًا</button>':''}
+  <div class="small" style="margin:10px 0 4px">إضافة مناسبة جديدة: تصبح هي الحالية، وتُحفظ السابقة للاطلاع والتصدير</div><div style="display:flex;gap:6px"><input class="in" id="mwnewin" placeholder="اسم المناسبة الجديدة (مثال: مولد ١٤٤٨)" maxlength="80" style="padding:10px"><button class="btn" id="mwnewbtn" style="width:auto;margin:0;padding:10px 16px">إضافة</button></div>
+  ${sel.id?`<button class="btn o" id="mwdelev" style="margin-top:10px">حذف «${esc(sel.name)}» نهائيًا مع كل تسجيلاتها</button>`:''}
   <div class="small" id="mwevm" style="margin-top:6px"></div></details>`:'')+`</div>`}
 document.addEventListener('toggle',e=>{if(e.target.id==='mwevd')mwEvOpen=e.target.open},true);
 document.addEventListener('change',e=>{if(e.target.id==='mwev'){mwEv=+e.target.value;loadMw()}});
@@ -792,7 +792,7 @@ document.addEventListener('click',async e=>{
   if(e.target.id==='mwrenbtn'){const n=$('#mwrenin').value.trim();if(!n){m().textContent='اكتب الاسم.';return}
     const {error}=await sb.from('mawlid_events').update({name:n}).eq('id',mwEv);if(error){m().textContent='تعذر الحفظ: '+error.message;return}mwEvOpen=true;loadMw();return}
   if(e.target.id==='mwnewbtn'){const n=$('#mwnewin').value.trim(),b=e.target;if(!n){m().textContent='اكتب اسم المناسبة الجديدة.';return}
-    if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='تأكيد';m().textContent='ستُحفظ «'+evName(mwCur)+'» للاطلاع فقط، وتبدأ «'+n+'» فارغة. اضغط تأكيد للمتابعة.';return}
+    if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='تأكيد';m().textContent=(mwCur!=null?'ستُحفظ «'+evName(mwCur)+'» للاطلاع فقط، وتبدأ «':'ستبدأ «')+n+'» فارغة. اضغط تأكيد للمتابعة.';return}
     const {error}=await sb.rpc('admin_new_mawlid',{new_name:n});if(error){m().textContent='تعذر التنفيذ: '+error.message;return}mwEv=null;mwEvOpen=false;loadMw();return}
   if(e.target.id==='mwdelev'){const b=e.target;if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف النهائي';return}
     const {error}=await sb.from('mawlid_events').delete().eq('id',mwEv);if(error){m().textContent='تعذر الحذف: '+error.message;return}mwEv=null;loadMw()}});
@@ -819,7 +819,7 @@ document.addEventListener('change',e=>{
 function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt,#mwbar'))loadMw()},45000)}
 // ----- الصلاحيات الموحدة (قاعدة البيانات + حضور المولد) -----
 const PR={none:'بدون',general:'نائب عموم',deputy:'نائب',manager:'مسئول حضرة',other:'غير ذلك'};
-const PDESC={none:'لا يرى تبويبي «قاعدة البيانات» و«حضور المولد».',general:'يطّلع على كامل بيانات التطبيق: كل المريدين والمرشدين وكل الحضرات.',deputy:'يطّلع على الحضرات التابعة له كما هي مسجّلة في «الحضرات المسئول عنها» ببيانات النائب (يُطابَق برقم موبايله).',manager:'يطّلع على الحضرة المسئول عنها فقط.',other:'اختر الحضرات التي يطّلع عليها.'};
+const PDESC={none:'لا يرى تبويبي «قاعدة البيانات» و«المناسبات».',general:'يطّلع على كامل بيانات التطبيق: كل المريدين والمرشدين وكل الحضرات.',deputy:'يطّلع على الحضرات التابعة له كما هي مسجّلة في «الحضرات المسئول عنها» ببيانات النائب (يُطابَق برقم موبايله).',manager:'يطّلع على الحضرة المسئول عنها فقط.',other:'اختر الحضرات التي يطّلع عليها.'};
 const permBadge=r=>{const ro=r.perm_role||'none';if(ro==='none')return '<span class="b w">بلا صلاحيات</span>';const n=(mgrMap.get(r.user_id)||new Set()).size;return `<span class="b t">${PR[ro]} · ${r.perm_level==='edit'?'تعديل':'رؤية فقط'}${(ro==='manager'||ro==='other')?' · '+ar(n)+' حضرة':''}</span>`};
 function depInfo(r){const k=normPhone(r.phone||'').slice(-10),d=k.length>=10&&people.find(p=>isDep(p)&&normPhone(p.phone||'').slice(-10)===k);
   if(!d)return '<span style="color:#c0392b">لم يُعثر على نائب مسجّل بنفس رقم موبايل هذا العضو. سجّل رقمه في بيانات النائب.</span>';
@@ -827,7 +827,7 @@ function depInfo(r){const k=normPhone(r.phone||'').slice(-10),d=k.length>=10&&pe
   return `النائب المطابق: <b>${esc(d.name)}</b><br>الحضرات: ${hs.length?esc(hs.join('، ')):'<span style="color:#c0392b">لم تُحدَّد بعد في بياناته (الحضرات المسئول عنها).</span>'}`}
 function permPanel(uid){const r=reqs.find(x=>x.user_id===uid)||{},ro=r.perm_role||'none',lv=r.perm_level||'view';let sel=mgrMap.get(uid);
   if(!sel||!sel.size)sel=new Set(items.filter(i=>i.phone&&i.phone===r.phone).map(i=>i.id));
-  return `<div class="small" style="margin:8px 0">الصلاحيات في تبويبي «قاعدة البيانات» و«حضور المولد»:</div>
+  return `<div class="small" style="margin:8px 0">الصلاحيات في تبويبي «قاعدة البيانات» و«المناسبات»:</div>
   <select class="in" data-prole style="margin-bottom:6px">${Object.keys(PR).map(k=>`<option value="${k}" ${k===ro?'selected':''}>${PR[k]}</option>`).join('')}</select>
   <div class="small" data-pdesc style="margin-bottom:6px">${PDESC[ro]}</div>
   <div data-plev ${ro==='none'?'hidden':''}><label style="margin-left:14px"><input type="radio" name="pl-${uid}" value="view" ${lv==='edit'?'':'checked'}> رؤية فقط</label><label><input type="radio" name="pl-${uid}" value="edit" ${lv==='edit'?'checked':''}> تعديل</label></div>
