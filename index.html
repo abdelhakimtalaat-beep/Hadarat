@@ -127,6 +127,7 @@ nav button.on svg{stroke:var(--gold)}
   <div class="mini"><img src="logo-y.png" alt=""><b>حضور المولد</b></div>
   <div class="wrap" style="padding-top:14px">
     <div class="card" id="mwtot" style="text-align:center"></div>
+    <button class="btn o" id="exM" style="margin:10px 0">⬇ تصدير Excel / PDF</button>
     <div id="mwbody"></div>
   </div>
 </section>
@@ -660,12 +661,19 @@ const typeOf=p=>RL[p.role]||(DC.get(p.id)?'مرشد':'مريد');
 const rank=p=>p.role==='deputy_general'?0:p.role==='deputy'?1:p.role==='khalifa_khulafa'?2:p.role==='khalifa'?3:DC.get(p.id)?4:5;
 const byHadra=(a,b)=>{const x=hName(a),y=hName(b);if(x&&y){const c=x.localeCompare(y,'ar');if(c)return c}else if(x)return -1;else if(y)return 1;return byAge(a,b)};
 const allPeople=()=>people.slice().sort(byHadra);
-function openEx(c){exCtx=c;const cur=c==='h'?dirRows().length:dbList().length,all=c==='h'?items.length:people.length;
-  $('#ex-all').textContent=`الكل (${ar(all)})`;$('#ex-cur').textContent=`المعروض حاليًا بحسب البحث والتصفية (${ar(cur)})`;
-  $('#ex-t').textContent=c==='h'?'تصدير دليل الحضرات':'تصدير قاعدة البيانات';$('#ex-m').hidden=true;$('#ex-sc-all').checked=true;$('#ex').hidden=false}
-$('#exH').onclick=()=>openEx('h');$('#exD').onclick=()=>openEx('d');$('#ex-x').onclick=()=>{$('#ex').hidden=true};
+function openEx(c){exCtx=c;const cur=c==='h'?dirRows().length:c==='m'?mwRoster.filter(x=>x.hadra_id===mwH).length:dbList().length,all=c==='h'?items.length:c==='m'?mwRoster.length:people.length;
+  $('#ex-all').textContent=`الكل (${ar(all)})`;$('#ex-cur').textContent=c==='m'?`الحضرة المعروضة حاليًا (${ar(cur)})`:`المعروض حاليًا بحسب البحث والتصفية (${ar(cur)})`;
+  $('#ex-t').textContent=c==='h'?'تصدير دليل الحضرات':c==='m'?'تصدير حضور المولد':'تصدير قاعدة البيانات';$('#ex-m').hidden=true;$('#ex-sc-all').checked=true;$('#ex').hidden=false}
+$('#exH').onclick=()=>openEx('h');$('#exD').onclick=()=>openEx('d');$('#exM').onclick=()=>openEx('m');$('#ex-x').onclick=()=>{$('#ex').hidden=true};
 const exMsg=s=>{const m=$('#ex-m');m.textContent=s;m.hidden=!s};
 function exData(){const all=$('#ex-sc-all').checked;
+  if(exCtx==='m'){const L=(all?mwRoster.slice().sort((a,b)=>hnm(a.hadra_id).localeCompare(hnm(b.hadra_id),'ar')):mwRoster.filter(x=>x.hadra_id===mwH));
+    const S=all?mwSum:mwSum.filter(x=>x.hadra_id===mwH),n=S.reduce((a,x)=>a+x.total,0),y=S.reduce((a,x)=>a+x.yes,0);
+    const stL=s=>s==='yes'?'حضر':s==='no'?'لم يحضر':'لم يُسجَّل';
+    return {title:`دليل قطاع 10 — حضور «${evName(mwEv)}» — ${all?'كل الحضرات':hnm(mwH)} — حضور ${ar(y)} من ${ar(n)} (${pctT(y,n)}) دون الأطفال`,sheet:'حضور المولد',file:'حضور-المولد',land:true,
+      cols:[['م',5],['الاسم',28],['الصفة',12],['الحضرة',22],['الفئة',16],['الحضور',12],['وسيلة الحضور',18],['سبب عدم الحضور',24]],
+      pdfCols:[0,1,2,3,4,5,6,7],
+      rows:L.map((x,i)=>[i+1,x.name,RL[x.role]||'مريد',hnm(x.hadra_id),x.is_child?'طفل (غير محسوب)':'بالغ',stL(x.status),x.status==='yes'?(x.mode||''):'',x.status==='no'?(x.reason||''):''])}}
   if(exCtx==='h'){const L=all?allDir():dirRows();
     return {title:'دليل قطاع 10 — الحضرات',sheet:'الحضرات',file:'دليل-الحضرات',land:true,
       cols:[['م',5],['اسم الحضرة',24],['اليوم',11],['الموعد',11],['اسم الدار',20],['العنوان',40],['اسم المسؤول',24],['هاتف المسؤول',16],['رابط الموقع',30]],
@@ -714,14 +722,19 @@ td{padding:5px;border:1px solid #d6e6db;vertical-align:top}tr:nth-child(even) td
   exMsg('فُتحت نافذة الطباعة: اختر «حفظ بصيغة PDF» من وجهة الطباعة.')}
 $('#ex-xl').onclick=exportXlsx;$('#ex-pdf').onclick=exportPdf;
 // ===== حضور المولد =====
-let CAN_MW=false,MYH=[],mwRoster=[],mwSum=[],mwH=null,mgrMap=new Map(),mwTimer=null,mwOpts={mode:[],reason:[]},mwOptOpen=false;
+let CAN_MW=false,MYH=[],mwRoster=[],mwSum=[],mwH=null,mgrMap=new Map(),mwTimer=null,mwOpts={mode:[],reason:[]},mwOptOpen=false,mwEvents=[],mwEv=null,mwCur=null,mwLegacy=false,mwEvOpen=false;
+const mwRO=()=>!(ADMIN||PERM.level==='edit')||(!mwLegacy&&mwEv!==mwCur);
 const DEF_MODES=['سيارة ملاكي','أتوبيس','ميكروباص'],DEF_REASONS=['ظروف العمل','ظروف مرضية','السفر للخارج','كبر السن/صعوبة الحركة'];
 const pct=(a,b)=>b?Math.round(a*1000/b)/10:0;
 const pctT=(a,b)=>ar(String(pct(a,b)).replace('.','٫'))+'٪';
 const hnm=id=>(items.find(i=>i.id===id)||{}).name||('حضرة '+id);
 async function loadMw(){if(!CAN_MW||!sb)return;
-  const [r,s,o]=await Promise.all([sb.rpc('mawlid_roster'),sb.rpc('mawlid_summary'),sb.from('mawlid_options').select('*').order('sort').order('id')]);
-  if(r.error||s.error){$('#mwbody').innerHTML='<div class="note">تعذر تحميل البيانات: '+esc((r.error||s.error).message)+' (تأكد من تشغيل mawlid.sql ثم mawlid-update.sql)</div>';return}
+  const ev=await sb.from('mawlid_events').select('*').order('id',{ascending:false});
+  mwLegacy=!!ev.error;mwEvents=ev.error?[]:(ev.data||[]);const cu=mwEvents.find(x=>!x.closed_at);mwCur=cu?cu.id:null;
+  if(!mwEvents.some(x=>x.id===mwEv))mwEv=mwCur;
+  const arg=mwLegacy?undefined:{ev:mwEv};
+  const [r,s,o]=await Promise.all([sb.rpc('mawlid_roster',arg),sb.rpc('mawlid_summary',arg),sb.from('mawlid_options').select('*').order('sort').order('id')]);
+  if(r.error||s.error){$('#mwbody').innerHTML='<div class="note">تعذر تحميل البيانات: '+esc((r.error||s.error).message)+' (تأكد من تشغيل mawlid-events.sql)</div>';return}
   mwOpts=o.error?{mode:DEF_MODES.map(l=>({label:l})),reason:DEF_REASONS.map(l=>({label:l})),missing:true}:{mode:(o.data||[]).filter(x=>x.kind==='mode'),reason:(o.data||[]).filter(x=>x.kind==='reason')};
   mwRoster=r.data||[];mwSum=s.data||[];renderMw()}
 function mwHadras(){const ids=ADMIN?[...new Set(mwSum.map(x=>x.hadra_id))]:MYH.filter(h=>mwSum.some(x=>x.hadra_id===h));return ids.sort((a,b)=>hnm(a).localeCompare(hnm(b),'ar'))}
@@ -742,7 +755,7 @@ function optsAdmin(){return `<details id="mwopts" style="margin-top:14px" ${mwOp
   [['mode','وسيلة الحضور'],['reason','سبب عدم الحضور']].map(([k,t])=>`<h2 style="font-size:16px">${t}</h2><div class="badges">${mwOpts[k].map(o=>`<span class="b">${esc(o.label)}${o.id?` <a data-oprm="${o.id}" style="cursor:pointer;color:#c0392b;font-weight:800">✕</a>`:''}</span>`).join('')||'<span class="small">لا توجد خيارات</span>'}</div>
   <div style="display:flex;gap:6px;margin-top:6px"><input class="in" data-opin="${k}" placeholder="خيار جديد" style="padding:10px"><button class="btn" style="width:auto;margin:0;padding:10px 16px" data-opadd="${k}">إضافة</button></div>`).join('')+
   `<div class="small" id="mwopm" style="margin-top:6px">${mwOpts.missing?'تعذر تحميل الخيارات: شغّل mawlid-update.sql.':''}</div></details>`}
-function renderMw(){renderMw0();if(!(ADMIN||PERM.level==='edit'))document.querySelectorAll('#mwbody .mwt button,#mwbody .mwt select,#mwbody .mwt input').forEach(x=>x.disabled=true)}
+function renderMw(){renderMw0();$('#mwbody').insertAdjacentHTML('afterbegin',mwEvBar());if(mwRO())document.querySelectorAll('#mwbody .mwt button,#mwbody .mwt select,#mwbody .mwt input').forEach(x=>x.disabled=true)}
 function renderMw0(){
   mwTotals();const hs=mwHadras();
   if(!hs.length){$('#mwbody').innerHTML='<div class="note">لا توجد حضرات مُسندة إليك بعد، أو لا يوجد مريدون مربوطون بحضراتك.</div>'+(ADMIN?optsAdmin():'');return}
@@ -752,9 +765,9 @@ function renderMw0(){
   $('#mwbody').innerHTML=sel+`<div class="small" id="mwst" style="min-height:22px"></div>`+
   (A.length?mwTable(A,`<td>نسبة الحضور</td><td colspan="3"><b>${pctT(yes,A.length)}</b> — حضور ${ar(yes)} من ${ar(A.length)} · معتذرون ${ar(no)} · لم يُسجَّل ${ar(A.length-yes-no)}</td>`):'<div class="note">لا يوجد مريدون بالغون في هذه الحضرة.</div>')+
   (K.length?`<h2 style="margin-top:20px">الأطفال (أقل من ١٤ سنة)</h2><div class="small" style="margin-bottom:6px">لا يُحتسبون في إجمالي الحضور ولا في نسبته.</div>`+mwTable(K,`<td>الأطفال</td><td colspan="3">حضر ${ar(ky)} من ${ar(K.length)} (غير محسوبين في النسبة)</td>`):'')+
-  (ADMIN||PERM.level==='edit'?'':'<div class="note" style="margin-top:10px">صلاحيتك «رؤية فقط»: لا يمكنك تسجيل الحضور.</div>')+
+  (mwRO()?`<div class="note" style="margin-top:10px">${(!mwLegacy&&mwEv!==mwCur)?'هذه مناسبة محفوظة، للاطلاع والتصدير فقط.':'صلاحيتك «رؤية فقط»: لا يمكنك تسجيل الحضور.'}</div>`:'')+
   (ADMIN?`<details style="margin-top:14px"><summary class="b" style="cursor:pointer;display:inline-block">ملخص كل الحضرات</summary><div class="lst" style="margin-top:8px">${mwSum.slice().sort((a,b)=>hnm(a.hadra_id).localeCompare(hnm(b.hadra_id),'ar')).map(x=>`<div>${esc(hnm(x.hadra_id))} <span class="small">· حضور ${ar(x.yes)} من ${ar(x.total)} · <b>${pctT(x.yes,x.total)}</b></span></div>`).join('')}</div></details>
-  ${optsAdmin()}<button class="btn o" id="mwreset" style="margin-top:14px">مسح كل التسجيلات (بداية مناسبة جديدة)</button>`:'')}
+  ${optsAdmin()}<button class="btn o" id="mwreset" style="margin-top:14px">مسح تسجيلات المناسبة الحالية</button>`:'')}
 document.addEventListener('toggle',e=>{if(e.target.id==='mwopts')mwOptOpen=e.target.open},true);
 document.addEventListener('click',async e=>{
   const ad=e.target.closest('[data-opadd]');
@@ -762,17 +775,38 @@ document.addEventListener('click',async e=>{
     const {error}=await sb.from('mawlid_options').insert({kind:k,label:v,sort:mx+1});if(error){$('#mwopm').textContent=/duplicate|unique/i.test(error.message)?'هذا الخيار موجود من قبل.':'تعذر الإضافة: '+error.message;return}mwOptOpen=true;loadMw();return}
   const rm=e.target.closest('[data-oprm]');
   if(rm){const {error}=await sb.from('mawlid_options').delete().eq('id',rm.dataset.oprm);if(error){$('#mwopm').textContent='تعذر الحذف: '+error.message;return}mwOptOpen=true;loadMw()}});
+const evName=id=>(mwEvents.find(x=>x.id===id)||{}).name||'المولد';
+const evDate=x=>new Date(x.created_at).toLocaleDateString('ar-EG',{day:'numeric',month:'short',year:'numeric'});
+function mwEvBar(){if(mwLegacy)return ADMIN?'<div class="note">لحفظ المناسبات وبدء مناسبة جديدة شغّل mawlid-events.sql في Supabase.</div>':'';
+  const sel=mwEvents.find(x=>x.id===mwEv)||{};
+  return `<div id="mwbar" style="margin-bottom:10px"><select id="mwev" class="in" style="margin-bottom:6px">${mwEvents.map(x=>`<option value="${x.id}" ${x.id===mwEv?'selected':''}>${esc(x.name)} — ${evDate(x)}${x.closed_at?' (محفوظة)':' (الحالية)'}</option>`).join('')}</select>`+
+  (ADMIN?`<details id="mwevd" ${mwEvOpen?'open':''}><summary class="b" style="cursor:pointer;display:inline-block">إدارة المناسبات</summary>
+  <div class="small" style="margin:8px 0 4px">اسم المناسبة المعروضة</div><div style="display:flex;gap:6px"><input class="in" id="mwrenin" value="${esc(sel.name||'')}" maxlength="80" style="padding:10px"><button class="btn" id="mwrenbtn" style="width:auto;margin:0;padding:10px 16px">حفظ الاسم</button></div>
+  <div class="small" style="margin:10px 0 4px">حفظ المناسبة الحالية في الأرشيف وبدء مناسبة جديدة فارغة</div><div style="display:flex;gap:6px"><input class="in" id="mwnewin" placeholder="اسم المناسبة الجديدة (مثال: مولد ١٤٤٨)" maxlength="80" style="padding:10px"><button class="btn" id="mwnewbtn" style="width:auto;margin:0;padding:10px 16px">بدء جديدة</button></div>
+  ${(sel.closed_at)?'<button class="btn o" id="mwdelev" style="margin-top:10px">حذف هذه المناسبة المحفوظة نهائيًا</button>':''}
+  <div class="small" id="mwevm" style="margin-top:6px"></div></details>`:'')+`</div>`}
+document.addEventListener('toggle',e=>{if(e.target.id==='mwevd')mwEvOpen=e.target.open},true);
+document.addEventListener('change',e=>{if(e.target.id==='mwev'){mwEv=+e.target.value;loadMw()}});
+document.addEventListener('click',async e=>{
+  const m=()=>$('#mwevm');
+  if(e.target.id==='mwrenbtn'){const n=$('#mwrenin').value.trim();if(!n){m().textContent='اكتب الاسم.';return}
+    const {error}=await sb.from('mawlid_events').update({name:n}).eq('id',mwEv);if(error){m().textContent='تعذر الحفظ: '+error.message;return}mwEvOpen=true;loadMw();return}
+  if(e.target.id==='mwnewbtn'){const n=$('#mwnewin').value.trim(),b=e.target;if(!n){m().textContent='اكتب اسم المناسبة الجديدة.';return}
+    if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='تأكيد';m().textContent='ستُحفظ «'+evName(mwCur)+'» للاطلاع فقط، وتبدأ «'+n+'» فارغة. اضغط تأكيد للمتابعة.';return}
+    const {error}=await sb.rpc('admin_new_mawlid',{new_name:n});if(error){m().textContent='تعذر التنفيذ: '+error.message;return}mwEv=null;mwEvOpen=false;loadMw();return}
+  if(e.target.id==='mwdelev'){const b=e.target;if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف النهائي';return}
+    const {error}=await sb.from('mawlid_events').delete().eq('id',mwEv);if(error){m().textContent='تعذر الحذف: '+error.message;return}mwEv=null;loadMw()}});
 const mwS=s=>{const e=$('#mwst');if(e)e.textContent=s};
-async function saveAtt(pid){const x=mwRoster.find(r=>r.person_id==pid);if(!x||!(ADMIN||PERM.level==='edit'))return;mwS('جارٍ الحفظ…');
-  const {error}=await sb.from('attendance').upsert({person_id:x.person_id,status:x.status||null,mode:x.status==='yes'?(x.mode||null):null,reason:x.status==='no'?(x.reason||null):null,updated_by:myId,updated_at:new Date().toISOString()},{onConflict:'person_id'});
+async function saveAtt(pid){const x=mwRoster.find(r=>r.person_id==pid);if(!x||mwRO())return;mwS('جارٍ الحفظ…');
+  const {error}=await sb.from('attendance').upsert({person_id:x.person_id,status:x.status||null,mode:x.status==='yes'?(x.mode||null):null,reason:x.status==='no'?(x.reason||null):null,updated_by:myId,updated_at:new Date().toISOString(),...(mwLegacy?{}:{event_id:mwCur})},{onConflict:mwLegacy?'person_id':'event_id,person_id'});
   mwS(error?'تعذر الحفظ: '+error.message:'تم الحفظ ✓')}
 document.addEventListener('click',async e=>{
   const b=e.target.closest('[data-mw]');
   if(b){const tr=b.closest('tr'),x=mwRoster.find(r=>r.person_id==tr.dataset.pid),v=b.dataset.mw;x.status=x.status===v?null:v;if(x.status!=='yes')x.mode=null;if(x.status!=='no')x.reason=null;
     recalc(mwH);const sc=window.scrollY;renderMw();window.scrollTo(0,sc);mwTotals();saveAtt(x.person_id);return}
   const rs=e.target.closest('#mwreset');
-  if(rs){if(rs.dataset.armed!=='1'){rs.dataset.armed='1';rs.textContent='اضغط مرة أخرى لتأكيد مسح كل التسجيلات';return}
-    const {error}=await sb.from('attendance').delete().gte('person_id',0);if(error){rs.textContent='تعذر المسح';return}loadMw()}});
+  if(rs){if(rs.dataset.armed!=='1'){rs.dataset.armed='1';rs.textContent='اضغط مرة أخرى لتأكيد مسح تسجيلات المناسبة الحالية';return}
+    const {error}=await (mwLegacy?sb.from('attendance').delete().gte('person_id',0):sb.from('attendance').delete().eq('event_id',mwCur));if(error){rs.textContent='تعذر المسح';return}loadMw()}});
 document.addEventListener('change',e=>{
   if(e.target.id==='mwh'){mwH=+e.target.value;renderMw();return}
   const tr=e.target.closest('.mwt tr[data-pid]');if(!tr)return;const x=mwRoster.find(r=>r.person_id==tr.dataset.pid);if(!x)return;
@@ -782,7 +816,7 @@ document.addEventListener('change',e=>{
   else v=inp.value.trim()||null;
   if(isM)x.mode=v;else x.reason=v;
   saveAtt(x.person_id)});
-function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt'))loadMw()},45000)}
+function mwWatch(){clearInterval(mwTimer);mwTimer=setInterval(()=>{if(document.querySelector('.page.on')?.id==='p-mw'&&!document.activeElement?.closest?.('.mwt,#mwbar'))loadMw()},45000)}
 // ----- الصلاحيات الموحدة (قاعدة البيانات + حضور المولد) -----
 const PR={none:'بدون',general:'نائب عموم',deputy:'نائب',manager:'مسئول حضرة',other:'غير ذلك'};
 const PDESC={none:'لا يرى تبويبي «قاعدة البيانات» و«حضور المولد».',general:'يطّلع على كامل بيانات التطبيق: كل المريدين والمرشدين وكل الحضرات.',deputy:'يطّلع على الحضرات التابعة له كما هي مسجّلة في «الحضرات المسئول عنها» ببيانات النائب (يُطابَق برقم موبايله).',manager:'يطّلع على الحضرة المسئول عنها فقط.',other:'اختر الحضرات التي يطّلع عليها.'};
