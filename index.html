@@ -83,7 +83,9 @@ nav button.on svg{stroke:var(--gold)}
   <div class="wrap" style="padding-top:14px">
     <div class="search" style="margin-top:0"><input id="q2" type="search" placeholder="ابحث…" aria-label="بحث"></div>
     <div class="days" id="listDays"></div>
-    <button class="btn o" id="exH" style="margin:2px 0 12px;padding:10px">⬇ تصدير Excel / PDF</button>
+    <button class="btn o" id="exH" style="margin:2px 0 8px;padding:10px">⬇ تصدير Excel / PDF</button>
+    <button class="btn" id="mapBtn" style="margin:0 0 12px;padding:10px">🗺 خريطة الحضرات</button>
+    <div id="mapBox" hidden style="margin-bottom:12px"><div class="legend" id="mapLg"></div><div id="map" style="height:360px;border-radius:14px;border:2px solid var(--gold);overflow:hidden;z-index:0"></div><div class="small" id="mapNote" style="margin-top:6px"></div></div>
     <div id="all"></div>
     <p class="small" id="updated" style="text-align:center;margin-top:18px"></p>
   </div>
@@ -148,6 +150,7 @@ nav button.on svg{stroke:var(--gold)}
 <label>اسم الحضرة<input id="f-name" required></label>
 <div class="two"><label>اليوم<select id="f-day"></select></label><label>الموعد<input id="f-time" type="time" required></label></div>
 <label>اسم الدار<input id="f-dar"></label>
+<div class="pch"><span class="av lg" id="f-av"><svg width="44" height="44"><use href="#i-home"/></svg></span><div class="pcb"><b>صورة الدار</b><input id="f-file" type="file" accept="image/*" style="margin-top:6px;width:100%"><button class="btn o" type="button" id="f-rmph" hidden style="padding:6px;margin:6px 0 0;font-size:14px">حذف الصورة</button></div></div>
 <label>العنوان<textarea id="f-address" rows="2"></textarea></label>
 <label>اسم المسؤول<input id="f-manager"></label>
 <label>رقم هاتف المسؤول<input id="f-phone" inputmode="tel" dir="ltr" placeholder="01XXXXXXXXX"></label>
@@ -206,6 +209,7 @@ nav button.on svg{stroke:var(--gold)}
 .cbox{background:var(--card);max-width:380px;margin:0 auto;border-radius:18px;padding:14px;display:grid;gap:8px;text-align:center}
 #cf{width:min(72vw,300px);aspect-ratio:4/5;margin:0 auto;overflow:hidden;position:relative;touch-action:none;border:3px solid var(--gold);border-radius:14px;background:#222;cursor:grab}
 #cf canvas{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-weight:600;font-size:14px}.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-left:5px;border:2px solid #fff;box-shadow:0 0 0 1px #888}.pin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55)}.leaflet-popup-content{font-family:inherit;direction:rtl;text-align:right;margin:12px 14px}.mpop b{font-size:16px}.mpop .acts2{display:flex;gap:10px;margin-top:8px}
 .av{flex:0 0 auto;width:112px;height:140px;border-radius:16px;background:#e0efe6;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--g);overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover;display:block}.av.lg{width:140px;height:175px}.pg{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}.pgi{min-width:0}.pg .av svg{width:48px;height:48px}.av.lg svg{width:60px;height:60px}#p-av{width:96px;height:120px}
 .pch{display:flex;gap:12px;align-items:center}.pcb{flex:1;min-width:0}.pcb h3{margin:0 0 4px}
@@ -301,12 +305,14 @@ function nextDelta(it){const now=new Date();const[h,m]=it.time.split(':').map(Nu
   let d=(it.day-todayIdx()+7)%7;if(d===0&&h*60+m+90<nowMin)d=7;return d*1440+h*60+m}
 function cardHTML(it){
   const dir=it.lat?`https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}`:it.map;
-  return `<article class="card" data-id="${it.id}">
+  const ph=it.photo_path?`<span class="av" data-pp="${esc(it.photo_path)}" data-pb="dar-photos" style="width:96px;height:120px"><svg width="40" height="40"><use href="#i-home"/></svg></span>`:'';
+  return `<article class="card" data-id="${it.id}"><div class="${ph?'pg':''}"><div class="pgi">
   <h3><a class="lk" data-hadra="${it.id}">${it.name}</a></h3>
   <div class="badges"><span class="b">${it.dayName}</span><span class="b t">${fmt(it.time)}</span></div>
   <div class="row"><svg width="20" height="20"><use href="#i-home"/></svg><span>${it.dar||'—'}</span></div>
   <div class="row"><svg width="20" height="20"><use href="#i-pin"/></svg><span>${it.address||'—'}</span></div>
   <div class="row"><svg width="20" height="20"><use href="#i-user"/></svg><span>${it.manager||'—'}${it.phone?` · <bdi dir="ltr">${it.phone}</bdi>`:` · <span class="small">رقم الهاتف يحتاج مراجعة</span>`}</span></div>
+  </div>${ph}</div>
   <div class="acts">
     ${it.phone?`<a class="call" href="tel:${it.phone}"><svg width="22" height="22"><use href="#i-phone"/></svg>اتصال</a>`:''}
     ${dir?`<a href="${dir}" target="_blank" rel="noopener"><svg width="22" height="22"><use href="#i-nav"/></svg>الاتجاهات</a>`:''}
@@ -314,7 +320,7 @@ function cardHTML(it){
     <a target="_blank" rel="noopener" href="${waLink(it)}"><svg width="22" height="22"><use href="#i-share"/></svg>مشاركة</a>
     ${(ADMIN||EDITH.has(it.id))?`<button data-edit="${it.id}"><svg width="22" height="22"><use href="#i-user"/></svg>تعديل</button>`:''}
   </div></article>`}
-const list=(arr,el,empty='لا توجد نتائج')=>{el.innerHTML=arr.length?arr.map(cardHTML).join(''):`<div class="empty">${empty}</div>`};
+const list=(arr,el,empty='لا توجد نتائج')=>{el.innerHTML=arr.length?arr.map(cardHTML).join(''):`<div class="empty">${empty}</div>`;applyPhotos(el)};
 let q='',dayF=null;
 const match=it=>!q||norm([it.name,it.dar,it.address,it.manager,it.dayName].join(' ')).includes(norm(q));
 function renderAll(){
@@ -353,23 +359,45 @@ $('#shareApp').href='https://wa.me/?text='+encodeURIComponent('دليل قطاع
 refreshChips();renderAll();
 
 
+// ===== خريطة الحضرات =====
+const PIN_TODAY='#1f9d55',PIN_OTHER='#b8860b';let LMAP=null,LLAY=null;
+function loadLeaflet(){return new Promise((ok,no)=>{if(window.L)return ok();const c=document.createElement('link');c.rel='stylesheet';c.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(c);
+  const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';s.onload=ok;s.onerror=()=>no(new Error('leaflet'));document.head.appendChild(s)})}
+function drawMap(){if(!LMAP)return;LLAY.clearLayers();const td=todayIdx(),pts=[];let nl=0;
+  items.forEach(it=>{if(!it.lat){nl++;return}const col=it.day===td?PIN_TODAY:PIN_OTHER;
+    const ic=L.divIcon({className:'',html:`<span class="pin" style="background:${col}"></span>`,iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-26]});
+    const dir=`https://www.google.com/maps/dir/?api=1&destination=${it.lat},${it.lng}`;
+    L.marker([it.lat,it.lng],{icon:ic,title:it.name}).addTo(LLAY).bindPopup(`<div class="mpop"><b>${esc(it.name)}</b><div>${it.dayName} · ${fmt(it.time)}</div>${it.dar?`<div class="small">${esc(it.dar)}</div>`:''}<div class="acts2"><a class="lk" data-hadra="${it.id}">التفاصيل</a><a href="${dir}" target="_blank" rel="noopener">الاتجاهات</a></div></div>`);pts.push([it.lat,it.lng])});
+  if(pts.length&&!LMAP._fit){LMAP.fitBounds(pts,{padding:[30,30],maxZoom:14});LMAP._fit=true}
+  $('#mapNote').textContent=nl?`${ar(nl)} حضرة بلا موقع على الخريطة (لم يُسجَّل لها رابط موقع).`:'';
+  $('#mapLg').innerHTML=`<span><i style="background:${PIN_TODAY}"></i>حضرات اليوم (${DAYS[td]})</span><span><i style="background:${PIN_OTHER}"></i>حضرات الأيام الأخرى</span>`}
+$('#mapBtn').onclick=async()=>{const box=$('#mapBox');if(!box.hidden){box.hidden=true;$('#mapBtn').textContent='🗺 خريطة الحضرات';return}
+  box.hidden=false;$('#mapBtn').textContent='إخفاء الخريطة';
+  try{await loadLeaflet()}catch(_){$('#mapNote').textContent='تعذر تحميل الخريطة. تأكد من الاتصال بالإنترنت ثم أعد المحاولة.';return}
+  if(!LMAP){LMAP=L.map('map').setView([30.0,31.2],9);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(LMAP);LLAY=L.layerGroup().addTo(LMAP)}
+  drawMap();setTimeout(()=>LMAP.invalidateSize(),100)};
 // ===== الاتصال بقاعدة البيانات (Supabase) =====
 const geo=u=>{const m=/!3d(-?[\d.]+)!4d(-?[\d.]+)/.exec(u||'')||/@(-?[\d.]+),(-?[\d.]+)/.exec(u||'');return m?[+m[1],+m[2]]:[null,null]};
 const phoneOK=p=>/^01[0125]\d{8}$/.test(p);
-const fromRow=d=>{const [lat,lng]=geo(d.map);return {id:+d.id,name:d.name||'',day:+d.day,dayName:DAYS[+d.day]||'',time:(d.time||'00:00').slice(0,5),manager:d.manager||'',phone:phoneOK(d.phone||'')?d.phone:'',dar:d.dar||'',address:d.address||'',map:d.map||'',lat,lng,at:d.updated_at||''}};
+const fromRow=d=>{const [lat,lng]=geo(d.map);return {id:+d.id,name:d.name||'',day:+d.day,dayName:DAYS[+d.day]||'',time:(d.time||'00:00').slice(0,5),manager:d.manager||'',phone:phoneOK(d.phone||'')?d.phone:'',dar:d.dar||'',address:d.address||'',map:d.map||'',lat,lng,photo_path:d.photo_path||'',at:d.updated_at||''}};
 const CFG=window.HADARAT_CONFIG||{};
 const sb=(CFG.url&&CFG.anonKey&&window.supabase)?window.supabase.createClient(CFG.url,CFG.anonKey):null;
 let editing=null,me=null,booted=false,pollT=null,subs=[];
-function applyItems(list){items=list;const mx=list.map(i=>i.at).filter(Boolean).sort().pop();if(mx)UPDATED=mx;stamp();refreshChips();renderAll()}
+function applyItems(list){items=list;if(typeof drawMap==='function'&&LMAP)drawMap();const mx=list.map(i=>i.at).filter(Boolean).sort().pop();if(mx)UPDATED=mx;stamp();refreshChips();renderAll()}
 async function load(){if(!sb)return;
   try{const {data,error}=await sb.from('hadarat').select('*').order('id');if(error)throw error;
     applyItems((data||[]).map(fromRow));try{localStorage.setItem('hz-cache',JSON.stringify(data||[]))}catch(e){}}
   catch(e){try{const c=JSON.parse(localStorage.getItem('hz-cache')||'null');if(c)applyItems(c.map(fromRow))}catch(_){}}}
 const fday=$('#f-day');DAYS.forEach((d,i)=>fday.insertAdjacentHTML('beforeend',`<option value="${i}">${d}</option>`));
+let hFile=null,hRm=false;
+function setHAv(it,blobUrl){const e=$('#f-av');if(blobUrl){e.innerHTML=`<img src="${blobUrl}" alt="">`;return}
+  e.innerHTML='<svg width="44" height="44"><use href="#i-home"/></svg>';if(it&&it.photo_path&&!hRm){e.dataset.pp=it.photo_path;e.dataset.pb='dar-photos';applyPhotos($('#edf'))}else delete e.dataset.pp}
+$('#f-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const b=await cropImage(f);if(!b){e.target.value='';return}hFile=b;hRm=false;setHAv(null,URL.createObjectURL(b));$('#f-rmph').hidden=false}catch(_){msg('تعذر قراءة الصورة.')}};
+$('#f-rmph').onclick=()=>{hFile=null;hRm=true;$('#f-file').value='';$('#f-rmph').hidden=true;setHAv(null)};
 function openEd(it){editing=it||null;$('#edt').textContent=it?'تعديل حضرة':'إضافة حضرة جديدة';
   $('#f-name').value=it?.name||'';fday.value=it?it.day:0;$('#f-time').value=it?.time||'08:00';$('#f-dar').value=it?.dar||'';$('#f-address').value=it?.address||'';
   $('#f-manager').value=it?.manager||'';$('#f-phone').value=it?.phone||'';$('#f-map').value=it?.map||'';$('#f-msg').hidden=true;
-  $('#f-del').hidden=!it||!ADMIN;$('#f-del').textContent='حذف الحضرة';$('#ed').hidden=false}
+  $('#f-del').hidden=!it||!ADMIN;$('#f-del').textContent='حذف الحضرة';hFile=null;hRm=false;$('#f-file').value='';$('#f-rmph').hidden=!it?.photo_path;setHAv(it);$('#ed').hidden=false}
 const closeEd=()=>{$('#ed').hidden=true};
 const msg=s=>{const m=$('#f-msg');m.textContent=s;m.hidden=false};
 $('#f-cancel').onclick=closeEd;$('#addNew').onclick=()=>openEd(null);
@@ -377,8 +405,15 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if
 $('#edf').onsubmit=async e=>{e.preventDefault();if(!sb||!(ADMIN||(editing&&EDITH.has(editing.id))))return;
   const ph=$('#f-phone').value.replace(/\D/g,'');if(ph&&!phoneOK(ph))return msg('رقم الهاتف غير صحيح. اكتبه بصيغة 01XXXXXXXXX أو اتركه فارغًا.');
   const row={name:$('#f-name').value.trim(),day:+fday.value,time:$('#f-time').value,dar:$('#f-dar').value.trim(),address:$('#f-address').value.trim(),manager:$('#f-manager').value.trim(),phone:ph,map:$('#f-map').value.trim(),updated_at:new Date().toISOString()};
-  const r=editing?await sb.from('hadarat').update(row).eq('id',editing.id):await sb.from('hadarat').insert(row);
-  if(r.error)return msg('تعذر الحفظ: '+r.error.message);closeEd();load()};
+  let hid=editing?editing.id:null,r;
+  if(editing)r=await sb.from('hadarat').update(row).eq('id',hid);else{r=await sb.from('hadarat').insert(row).select('id').single();if(!r.error)hid=r.data.id}
+  if(r.error)return msg('تعذر الحفظ: '+r.error.message);
+  if(hFile||hRm){const old=editing?.photo_path||null;let np=null;
+    if(hFile){np='h'+hid+'-'+Date.now()+'.jpg';const u=await sb.storage.from('dar-photos').upload(np,hFile,{contentType:'image/jpeg'});
+      if(u.error){load();return msg('حُفظت البيانات لكن تعذر رفع الصورة: '+u.error.message+' (تأكد من تشغيل dar-photos.sql)')}}
+    const u2=await sb.from('hadarat').update({photo_path:np}).eq('id',hid);if(u2.error){load();return msg('تعذر حفظ الصورة: '+u2.error.message+' (تأكد من تشغيل dar-photos.sql)')}
+    if(old){try{await sb.storage.from('dar-photos').remove([old])}catch(_){}}}
+  closeEd();load()};
 $('#f-del').onclick=async()=>{if($('#f-del').textContent!=='اضغط مرة أخرى لتأكيد الحذف'){$('#f-del').textContent='اضغط مرة أخرى لتأكيد الحذف';return}
   const r=await sb.from('hadarat').delete().eq('id',editing.id);if(r.error)return msg('تعذر الحذف: '+r.error.message);closeEd();load()};
 
@@ -517,9 +552,10 @@ const roleN=p=>p.role==='deputy_general'?0:p.role==='deputy'?1:2;
 const KIDH='الأطفال (أقل من ١٤ سنة)',NOBH='بدون تاريخ ميلاد';
 const av=(p,big)=>`<span class="av${big?' lg':''}"${p.photo_path?` data-pp="${esc(p.photo_path)}"`:''}><svg width="${big?44:30}" height="${big?44:30}"><use href="#i-user"/></svg></span>`;
 const PU=new Map();
-async function applyPhotos(root=document){const els=[...root.querySelectorAll('[data-pp]')];if(!els.length||!sb)return;const now=Date.now();
-  const need=[...new Set(els.map(e=>e.dataset.pp))].filter(p=>!PU.get(p)||now-PU.get(p).t>3000000);
-  if(need.length){try{const {data}=await sb.storage.from('people-photos').createSignedUrls(need,3600);(data||[]).forEach(d=>{if(d.signedUrl)PU.set(d.path,{url:d.signedUrl,t:now})})}catch(e){}}
+async function applyPhotos(root=document){const els=[...root.querySelectorAll('[data-pp]')];if(!els.length||!sb)return;const now=Date.now(),bk=e=>e.dataset.pb||'people-photos';
+  for(const b of [...new Set(els.map(bk))]){
+    const need=[...new Set(els.filter(e=>bk(e)===b).map(e=>e.dataset.pp))].filter(p=>!PU.get(p)||now-PU.get(p).t>3000000);
+    if(need.length){try{const {data}=await sb.storage.from(b).createSignedUrls(need,3600);(data||[]).forEach(d=>{if(d.signedUrl)PU.set(d.path,{url:d.signedUrl,t:now})})}catch(e){}}}
   els.forEach(e=>{const u=PU.get(e.dataset.pp);if(u&&!e.querySelector('img'))e.innerHTML=`<img src="${u.url}" alt="">`})}
 function withGroups(a,render,key,all){all=all||a;let out='',kk=false,nn=false;const kn=all.filter(isKid).length,nd=all.filter(p=>!p.birth_date).length;
   for(const p of a){if(key==='age'){if(!kk&&isKid(p)){kk=true;out+=`<div class="grp">${KIDH} · ${ar(kn)}</div>`}if(!nn&&!p.birth_date){nn=true;out+=`<div class="grp">${NOBH} · ${ar(nd)}</div>`}}out+=render(p)}return out}
