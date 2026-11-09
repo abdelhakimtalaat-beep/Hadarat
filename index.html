@@ -85,7 +85,7 @@ nav button.on svg{stroke:var(--gold)}
     <div class="days" id="listDays"></div>
     <button class="btn o" id="exH" style="margin:2px 0 8px;padding:10px">⬇ تصدير Excel / PDF</button>
     <button class="btn" id="mapBtn" style="margin:0 0 12px;padding:10px">🗺 خريطة الحضرات</button>
-    <div id="mapBox" hidden style="margin-bottom:12px"><div class="legend" id="mapLg"></div><div id="map" style="height:360px;border-radius:14px;border:2px solid var(--gold);overflow:hidden;z-index:0"></div><div class="small" id="mapNote" style="margin-top:6px"></div></div>
+    <div id="mapBox" hidden style="margin-bottom:12px"><div class="legend" id="mapLg"></div><button class="btn o" id="mapMe" style="margin:0 0 8px;padding:8px">📍 موقعي الحالي</button><div id="map" style="height:360px;border-radius:14px;border:2px solid var(--gold);overflow:hidden;z-index:0"></div><div class="small" id="mapNote" style="margin-top:6px"></div></div>
     <div id="all"></div>
     <p class="small" id="updated" style="text-align:center;margin-top:18px"></p>
   </div>
@@ -209,7 +209,7 @@ nav button.on svg{stroke:var(--gold)}
 .cbox{background:var(--card);max-width:380px;margin:0 auto;border-radius:18px;padding:14px;display:grid;gap:8px;text-align:center}
 #cf{width:min(72vw,300px);aspect-ratio:4/5;margin:0 auto;overflow:hidden;position:relative;touch-action:none;border:3px solid var(--gold);border-radius:14px;background:#222;cursor:grab}
 #cf canvas{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;user-select:none;-webkit-user-drag:none}
-.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-weight:600;font-size:14px}.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-left:5px;border:2px solid #fff;box-shadow:0 0 0 1px #888}.pin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55)}.leaflet-popup-content{font-family:inherit;direction:rtl;text-align:right;margin:12px 14px}.mpop b{font-size:16px}.mpop .acts2{display:flex;gap:10px;margin-top:8px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;font-weight:600;font-size:14px}.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-left:5px;border:2px solid #fff;box-shadow:0 0 0 1px #888}.me{display:block;width:18px;height:18px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 2px #1a73e8,0 1px 6px rgba(0,0,0,.5);animation:mep 1.8s infinite}@keyframes mep{0%{box-shadow:0 0 0 2px #1a73e8,0 0 0 2px rgba(26,115,232,.5)}100%{box-shadow:0 0 0 2px #1a73e8,0 0 0 18px rgba(26,115,232,0)}}.pin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55)}.leaflet-popup-content{font-family:inherit;direction:rtl;text-align:right;margin:12px 14px}.mpop b{font-size:16px}.mpop .acts2{display:flex;gap:10px;margin-top:8px}
 .av{flex:0 0 auto;width:112px;height:140px;border-radius:16px;background:#e0efe6;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--g);overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover;display:block}.av.lg{width:140px;height:175px}.pg{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start}.pgi{min-width:0}.pg .av svg{width:48px;height:48px}.av.lg svg{width:60px;height:60px}#p-av{width:96px;height:120px}
 .pch{display:flex;gap:12px;align-items:center}.pcb{flex:1;min-width:0}.pcb h3{margin:0 0 4px}
@@ -370,12 +370,21 @@ function drawMap(){if(!LMAP)return;LLAY.clearLayers();const td=todayIdx(),pts=[]
     L.marker([it.lat,it.lng],{icon:ic,title:it.name}).addTo(LLAY).bindPopup(`<div class="mpop"><b>${esc(it.name)}</b><div>${it.dayName} · ${fmt(it.time)}</div>${it.dar?`<div class="small">${esc(it.dar)}</div>`:''}<div class="acts2"><a class="lk" data-hadra="${it.id}">التفاصيل</a><a href="${dir}" target="_blank" rel="noopener">الاتجاهات</a></div></div>`);pts.push([it.lat,it.lng])});
   if(pts.length&&!LMAP._fit){LMAP.fitBounds(pts,{padding:[30,30],maxZoom:14});LMAP._fit=true}
   $('#mapNote').textContent=nl?`${ar(nl)} حضرة بلا موقع على الخريطة (لم يُسجَّل لها رابط موقع).`:'';
-  $('#mapLg').innerHTML=`<span><i style="background:${PIN_TODAY}"></i>حضرات اليوم (${DAYS[td]})</span><span><i style="background:${PIN_OTHER}"></i>حضرات الأيام الأخرى</span>`}
-$('#mapBtn').onclick=async()=>{const box=$('#mapBox');if(!box.hidden){box.hidden=true;$('#mapBtn').textContent='🗺 خريطة الحضرات';return}
+  $('#mapLg').innerHTML=`<span><i style="background:${PIN_TODAY}"></i>حضرات اليوم (${DAYS[td]})</span><span><i style="background:${PIN_OTHER}"></i>حضرات الأيام الأخرى</span><span><i style="background:#1a73e8"></i>موقعك الحالي</span>`}
+let ME=null,MEC=null,GW=null,meFirst=true;
+function stopLoc(){if(GW!==null&&navigator.geolocation)navigator.geolocation.clearWatch(GW);GW=null;if(LMAP){if(ME)LMAP.removeLayer(ME);if(MEC)LMAP.removeLayer(MEC)}ME=MEC=null;meFirst=true}
+function startLoc(){const note=s=>{$('#mapNote').textContent=s};if(!navigator.geolocation)return note('جهازك لا يدعم تحديد الموقع.');if(GW!==null)return;
+  GW=navigator.geolocation.watchPosition(pos=>{const ll=[pos.coords.latitude,pos.coords.longitude],ac=pos.coords.accuracy||30;
+    if(!ME){ME=L.marker(ll,{icon:L.divIcon({className:'',html:'<span class="me"></span>',iconSize:[18,18],iconAnchor:[9,9]}),zIndexOffset:1000}).addTo(LMAP).bindPopup('<div class="mpop"><b>أنت هنا</b></div>');MEC=L.circle(ll,{radius:ac,color:'#1a73e8',weight:1,fillOpacity:.12}).addTo(LMAP)}
+    else{ME.setLatLng(ll);MEC.setLatLng(ll);MEC.setRadius(ac)}
+    if(meFirst){meFirst=false;LMAP.setView(ll,Math.max(LMAP.getZoom?LMAP.getZoom():13,13))}},
+   er=>{GW=null;note(er.code===1?'لم يُسمح بتحديد الموقع. فعّله من إعدادات المتصفح ثم اضغط «موقعي الحالي».':'تعذر تحديد موقعك الآن. تأكد من تشغيل GPS وحاول مرة أخرى.')},{enableHighAccuracy:true,maximumAge:10000,timeout:25000})}
+$('#mapMe').onclick=()=>{if(ME){LMAP.setView(ME.getLatLng(),15)}else{meFirst=true;startLoc()}};
+$('#mapBtn').onclick=async()=>{const box=$('#mapBox');if(!box.hidden){box.hidden=true;$('#mapBtn').textContent='🗺 خريطة الحضرات';stopLoc();return}
   box.hidden=false;$('#mapBtn').textContent='إخفاء الخريطة';
   try{await loadLeaflet()}catch(_){$('#mapNote').textContent='تعذر تحميل الخريطة. تأكد من الاتصال بالإنترنت ثم أعد المحاولة.';return}
   if(!LMAP){LMAP=L.map('map').setView([30.0,31.2],9);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(LMAP);LLAY=L.layerGroup().addTo(LMAP)}
-  drawMap();setTimeout(()=>LMAP.invalidateSize(),100)};
+  drawMap();setTimeout(()=>LMAP.invalidateSize(),100);startLoc()};
 // ===== الاتصال بقاعدة البيانات (Supabase) =====
 const geo=u=>{const m=/!3d(-?[\d.]+)!4d(-?[\d.]+)/.exec(u||'')||/@(-?[\d.]+),(-?[\d.]+)/.exec(u||'');return m?[+m[1],+m[2]]:[null,null]};
 const phoneOK=p=>/^01[0125]\d{8}$/.test(p);
