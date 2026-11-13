@@ -112,6 +112,7 @@ nav button.on svg{stroke:var(--gold)}
 <section class="page" id="p-mq">
   <div class="mini"><img src="logo-y.png" alt=""><b>المقامات</b></div>
   <div class="wrap" style="padding-top:14px">
+    <div id="mqMapBox"><div class="legend"><span><i style="background:#1f6f4a"></i>مقام (اضغط على العلامة للذهاب إلى المكان)</span></div><div id="mqMap" style="height:300px;border-radius:14px;border:2px solid var(--gold);overflow:hidden;z-index:0"></div><div class="small" id="mqMapNote" style="margin:6px 0 12px"></div></div>
     <div class="search" style="margin:0 0 10px"><input id="mqq" type="search" placeholder="ابحث بالاسم أو النسب أو المحافظة…" aria-label="بحث"></div>
     <select id="mqg" class="in" style="margin:0 0 10px"><option value="">كل المحافظات</option></select>
     <button class="btn" id="mqAdd" hidden style="margin:0 0 10px">＋ إضافة مقام</button>
@@ -176,19 +177,21 @@ nav button.on svg{stroke:var(--gold)}
 <div id="mqed" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
 <form id="mqf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
 <h2 id="mqt" style="margin:0">إضافة مقام</h2>
-<label>اسم الولي / الصحابي / من آل البيت<input id="mq-name" required></label>
-<label>المحافظة<select id="mq-gov"></select></label>
+<label>الاسم (بدون ألقاب مثل الشيخ أو السيدة)<input id="mq-name" required></label>
+<div class="two"><label>النوع<select id="mq-gen"><option value="male">ذكر (سيدي … رضي الله عنه)</option><option value="female">أنثى (السيدة … رضي الله عنها)</option><option value="">بدون لقب</option></select></label><label>المحافظة<select id="mq-gov"></select></label></div>
 <label>النسب<textarea id="mq-lin" rows="2" placeholder="مثال: الحسين بن علي بن أبي طالب"></textarea></label>
 <div class="two"><label>تاريخ المولد<input id="mq-birth" placeholder="مثال: ٣٨ هـ"></label><label>تاريخ الانتقال<input id="mq-death" placeholder="مثال: ٦١ هـ"></label></div>
 <label>نبذة مختصرة عن حياته<textarea id="mq-bio" rows="5"></textarea></label>
 <label>وصف مكان المقام<input id="mq-addr" placeholder="مثال: حي الحسين - القاهرة"></label>
 <label>رابط الموقع على Google Maps<input id="mq-map" dir="ltr" placeholder="https://maps.app.goo.gl/…"></label>
+<div class="two"><label>خط العرض (اختياري)<input id="mq-lat" dir="ltr" inputmode="decimal" placeholder="30.0479"></label><label>خط الطول (اختياري)<input id="mq-lng" dir="ltr" inputmode="decimal" placeholder="31.2625"></label></div>
+<div class="small">إن لصقت رابطًا كاملًا من خرائط جوجل فيه إحداثيات فسيُستخدم تلقائيًا لموضع العلامة.</div>
 <div id="mq-msg" class="note" hidden></div>
 <button class="btn" type="submit">حفظ</button>
 <button class="btn o" type="button" id="mq-del" hidden>حذف المقام</button>
 <button class="btn o" type="button" id="mq-cancel">إلغاء</button>
 </form></div>
-<style>#mqf label{display:grid;gap:4px;font-weight:600;font-size:15px}#mqf input,#mqf select,#mqf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#mqf input:focus,#mqf select:focus,#mqf textarea:focus{outline:none;border-color:var(--gold)}.mqbio{white-space:pre-line;line-height:1.8;margin-top:6px}</style>
+<style>#mqf label{display:grid;gap:4px;font-weight:600;font-size:15px}#mqf input,#mqf select,#mqf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#mqf input:focus,#mqf select:focus,#mqf textarea:focus{outline:none;border-color:var(--gold)}.mqpre{font-size:.62em;font-weight:600;opacity:.8;white-space:nowrap}.mqpin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);background:#1f6f4a}.mqbio{white-space:pre-line;line-height:1.8;margin-top:6px}</style>
 <div id="crop" hidden><div class="cbox"><b>اضبط الصورة</b><div class="small">اسحب الصورة لتحريكها، وكبّر وصغّر بالإصبعين أو بالشريط</div>
 <div id="cf"></div><input id="cz" type="range" min="1" max="4" step="0.01" value="1" style="width:100%"><div class="two"><button class="btn o" type="button" id="crot">تدوير ↻</button><button class="btn o" type="button" id="cno">إلغاء</button></div><button class="btn" type="button" id="cok">تم</button></div></div>
 <div id="ex" hidden style="position:fixed;inset:0;z-index:2400;background:rgba(0,0,0,.6);overflow:auto;padding:16px"><div style="background:var(--card);max-width:420px;margin:12vh auto 0;border-radius:18px;padding:16px;display:grid;gap:10px">
@@ -396,29 +399,44 @@ let maq=[],mqEd=null,mqErr='';
 $('#mq-gov').innerHTML=GOVS.map(g=>`<option>${g}</option>`).join('');
 async function loadMq(){if(!sb)return;const {data,error}=await sb.from('maqamat').select('*').order('name');
   if(error){mqErr='تعذر تحميل المقامات. تأكد من تشغيل maqamat.sql في Supabase.';maq=[]}else{mqErr='';maq=data||[]}renderMq()}
+const mqT=m=>{const n=esc(m.name);return m.gender==='male'?`سيدي ${n} <small class="mqpre">رضي الله عنه</small>`:m.gender==='female'?`السيدة ${n} <small class="mqpre">رضي الله عنها</small>`:n};
+const mqTxt=m=>m.gender==='male'?'سيدي '+m.name:m.gender==='female'?'السيدة '+m.name:m.name;
+const mqLL=m=>{const g=geo(m.map_url);if(g[0]!=null)return g;return(m.lat!=null&&m.lng!=null)?[+m.lat,+m.lng]:[null,null]};
+let MQM=null,MQL=null;
+async function drawMq(){const box=$('#mqMap');if(!box||!$('#p-mq').classList.contains('on'))return;
+  try{await loadLeaflet()}catch(_){$('#mqMapNote').textContent='تعذر تحميل الخريطة. تأكد من الاتصال بالإنترنت.';return}
+  if(!MQM){MQM=L.map('mqMap').setView([28.0,30.8],6);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(MQM);MQL=L.layerGroup().addTo(MQM)}
+  MQL.clearLayers();const pts=[];let nl=0;
+  mqList().forEach(m=>{const [la,lo]=mqLL(m);if(la==null){nl++;return}
+    const ic=L.divIcon({className:'',html:'<span class="mqpin"></span>',iconSize:[26,26],iconAnchor:[13,26]});
+    const mk=L.marker([la,lo],{icon:ic,title:mqTxt(m)}).addTo(MQL);mk.bindTooltip(mqTxt(m),{direction:'top',offset:[0,-24]});
+    mk.on('click',()=>{const u=m.map_url||`https://www.google.com/maps/search/?api=1&query=${la},${lo}`;window.open(u,'_blank','noopener')});pts.push([la,lo])});
+  if(pts.length)MQM.fitBounds(pts,{padding:[30,30],maxZoom:12});
+  $('#mqMapNote').textContent=nl?`${ar(nl)} مقام بلا موقع على الخريطة (راجع الرابط في بطاقته).`:'';setTimeout(()=>MQM.invalidateSize(),100)}
 function mqList(){const k=norm($('#mqq').value||''),g=$('#mqg').value;
   return maq.filter(m=>(!g||m.governorate===g)&&(!k||norm([m.name,m.lineage,m.governorate,m.bio,m.address].join(' ')).includes(k)))}
 function renderMq(){const box=$('#mqList');if(!box)return;
   const gs=[...new Set(maq.map(m=>m.governorate).filter(Boolean))].sort((a,b)=>GOVS.indexOf(a)-GOVS.indexOf(b)),cur=$('#mqg').value;
   $('#mqg').innerHTML='<option value="">كل المحافظات</option>'+gs.map(g=>`<option ${g===cur?'selected':''}>${esc(g)}</option>`).join('');
   if(mqErr){box.innerHTML=`<div class="note">${mqErr}</div>`;$('#mqn').textContent='';return}
-  const L=mqList();$('#mqn').textContent=maq.length?`${ar(L.length)} مقام`:'';
+  const L=mqList();drawMq();$('#mqn').textContent=maq.length?`${ar(L.length)} مقام`:'';
   box.innerHTML=L.length?L.map(m=>{
     const mp=m.map_url?`<a class="btn" style="width:auto;display:inline-flex;margin:0;padding:8px 14px;text-decoration:none" href="${esc(m.map_url)}" target="_blank" rel="noopener">📍 موقع المقام في خرائط جوجل</a>`:'';
     const row=(l,v)=>v?`<div class="row"><b>${l}:</b> ${esc(v)}</div>`:'';
-    return `<article class="card"><h3>${esc(m.name)}</h3><div class="badges">${m.governorate?`<span class="b t">${esc(m.governorate)}</span>`:''}</div>
+    return `<article class="card"><h3>${mqT(m)}</h3><div class="badges">${m.governorate?`<span class="b t">${esc(m.governorate)}</span>`:''}</div>
     ${row('النسب',m.lineage)}${row('المولد',m.birth)}${row('الانتقال',m.death)}${row('المكان',m.address)}
     ${m.bio?`<details style="margin-top:6px"><summary class="b" style="cursor:pointer;display:inline-block">نبذة عن حياته</summary><div class="mqbio">${esc(m.bio)}</div></details>`:''}
     <div class="acts" style="margin-top:10px">${mp}${ADMIN?`<button data-mqe="${m.id}">تعديل</button>`:''}</div></article>`}).join(''):`<div class="empty">${maq.length?'لا توجد نتائج':'لم تُضف مقامات بعد.'}</div>`}
 document.addEventListener('click',e=>{const ed=e.target.closest('[data-mqe]');if(ed)openMq(maq.find(m=>m.id==ed.dataset.mqe))});
 $('#mqq').addEventListener('input',renderMq);$('#mqg').addEventListener('change',renderMq);
-function openMq(m){mqEd=m||null;$('#mqt').textContent=m?'تعديل مقام':'إضافة مقام';$('#mq-name').value=m?.name||'';$('#mq-gov').value=m?.governorate||GOVS[0];
+function openMq(m){mqEd=m||null;$('#mqt').textContent=m?'تعديل مقام':'إضافة مقام';$('#mq-name').value=m?.name||'';$('#mq-gen').value=m?(m.gender||''):'male';$('#mq-lat').value=m?.lat??'';$('#mq-lng').value=m?.lng??'';$('#mq-gov').value=m?.governorate||GOVS[0];
   $('#mq-lin').value=m?.lineage||'';$('#mq-birth').value=m?.birth||'';$('#mq-death').value=m?.death||'';$('#mq-bio').value=m?.bio||'';$('#mq-addr').value=m?.address||'';$('#mq-map').value=m?.map_url||'';
   $('#mq-msg').hidden=true;$('#mq-del').hidden=!m;$('#mqed').hidden=false}
 $('#mqAdd').onclick=()=>openMq(null);$('#mq-cancel').onclick=()=>{$('#mqed').hidden=true};
 $('#mqf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;const say=s=>{const x=$('#mq-msg');x.textContent=s;x.hidden=false};
+  const num=x=>{x=String(x).trim().replace(',','.');return x!==''&&isFinite(x)?+x:null};
   const mu=$('#mq-map').value.trim();if(mu&&!/^https?:\/\//i.test(mu))return say('رابط الموقع يجب أن يبدأ بـ https://');
-  const row={name:$('#mq-name').value.trim(),governorate:$('#mq-gov').value,lineage:$('#mq-lin').value.trim()||null,birth:$('#mq-birth').value.trim()||null,death:$('#mq-death').value.trim()||null,bio:$('#mq-bio').value.trim()||null,address:$('#mq-addr').value.trim()||null,map_url:mu||null,updated_at:new Date().toISOString()};
+  const row={name:$('#mq-name').value.trim(),governorate:$('#mq-gov').value,lineage:$('#mq-lin').value.trim()||null,birth:$('#mq-birth').value.trim()||null,death:$('#mq-death').value.trim()||null,bio:$('#mq-bio').value.trim()||null,address:$('#mq-addr').value.trim()||null,map_url:mu||null,gender:$('#mq-gen').value||null,lat:num($('#mq-lat').value),lng:num($('#mq-lng').value),updated_at:new Date().toISOString()};
   if(!row.name)return say('اكتب الاسم.');
   const r=mqEd?await sb.from('maqamat').update(row).eq('id',mqEd.id):await sb.from('maqamat').insert(row);
   if(r.error)return say('تعذر الحفظ: '+r.error.message+' (تأكد من تشغيل maqamat.sql)');
