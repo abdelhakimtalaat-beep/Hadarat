@@ -73,6 +73,7 @@ nav button.on svg{stroke:var(--gold)}
 <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
 <symbol id="i-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-8-8 18-2-8z"/></symbol>
 <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M9 15l2 2 4-4"/></symbol>
+<symbol id="i-mq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M7 11a5 5 0 0 1 10 0M5 11h14v10H5zM10 21v-4a2 2 0 0 1 4 0v4M3 21h18"/></symbol>
 <symbol id="i-db" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
 <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></symbol>
 </svg>
@@ -108,6 +109,18 @@ nav button.on svg{stroke:var(--gold)}
     <p class="small" id="count"></p>
   </div>
 </section>
+<section class="page" id="p-mq">
+  <div class="mini"><img src="logo-y.png" alt=""><b>المقامات</b></div>
+  <div class="wrap" style="padding-top:14px">
+    <div class="days"><button class="chip on" data-mqk="">الكل<small id="mq-c0"></small></button><button class="chip" data-mqk="wali">الأولياء<small id="mq-c1"></small></button><button class="chip" data-mqk="sahabi">الصحابة<small id="mq-c2"></small></button><button class="chip" data-mqk="ahl_bayt">آل البيت<small id="mq-c3"></small></button></div>
+    <div class="search" style="margin:0 0 10px"><input id="mqq" type="search" placeholder="ابحث بالاسم أو النسب أو المحافظة…" aria-label="بحث"></div>
+    <select id="mqg" class="in" style="margin:0 0 10px"><option value="">كل المحافظات</option></select>
+    <button class="btn" id="mqAdd" hidden style="margin:0 0 10px">＋ إضافة مقام</button>
+    <div class="small" id="mqn" style="margin-bottom:8px"></div>
+    <div id="mqList"></div>
+  </div>
+</section>
+
 <section class="page" id="p-db">
   <div class="mini"><img src="logo-y.png" alt=""><b>قاعدة البيانات</b></div>
   <div class="wrap" style="padding-top:14px">
@@ -161,6 +174,22 @@ nav button.on svg{stroke:var(--gold)}
 <button class="btn o" type="button" id="f-cancel">إلغاء</button>
 </form></div>
 <style>#edf label{display:grid;gap:4px;font-weight:600;font-size:15px}#edf input,#edf select,#edf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#edf input:focus,#edf select:focus,#edf textarea:focus{outline:2px solid var(--gold)}</style>
+<div id="mqed" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
+<form id="mqf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
+<h2 id="mqt" style="margin:0">إضافة مقام</h2>
+<label>اسم الولي / الصحابي / من آل البيت<input id="mq-name" required></label>
+<div class="two"><label>التصنيف<select id="mq-kind"><option value="wali">ولي</option><option value="sahabi">صحابي</option><option value="ahl_bayt">من آل البيت</option></select></label><label>المحافظة<select id="mq-gov"></select></label></div>
+<label>النسب<textarea id="mq-lin" rows="2" placeholder="مثال: الحسين بن علي بن أبي طالب"></textarea></label>
+<div class="two"><label>تاريخ المولد<input id="mq-birth" placeholder="مثال: ٣٨ هـ"></label><label>تاريخ الانتقال<input id="mq-death" placeholder="مثال: ٦١ هـ"></label></div>
+<label>نبذة مختصرة عن حياته<textarea id="mq-bio" rows="5"></textarea></label>
+<label>وصف مكان المقام<input id="mq-addr" placeholder="مثال: حي الحسين - القاهرة"></label>
+<label>رابط الموقع على Google Maps<input id="mq-map" dir="ltr" placeholder="https://maps.app.goo.gl/…"></label>
+<div id="mq-msg" class="note" hidden></div>
+<button class="btn" type="submit">حفظ</button>
+<button class="btn o" type="button" id="mq-del" hidden>حذف المقام</button>
+<button class="btn o" type="button" id="mq-cancel">إلغاء</button>
+</form></div>
+<style>#mqf label{display:grid;gap:4px;font-weight:600;font-size:15px}#mqf input,#mqf select,#mqf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#mqf input:focus,#mqf select:focus,#mqf textarea:focus{outline:none;border-color:var(--gold)}.mqbio{white-space:pre-line;line-height:1.8;margin-top:6px}</style>
 <div id="crop" hidden><div class="cbox"><b>اضبط الصورة</b><div class="small">اسحب الصورة لتحريكها، وكبّر وصغّر بالإصبعين أو بالشريط</div>
 <div id="cf"></div><input id="cz" type="range" min="1" max="4" step="0.01" value="1" style="width:100%"><div class="two"><button class="btn o" type="button" id="crot">تدوير ↻</button><button class="btn o" type="button" id="cno">إلغاء</button></div><button class="btn" type="button" id="cok">تم</button></div></div>
 <div id="ex" hidden style="position:fixed;inset:0;z-index:2400;background:rgba(0,0,0,.6);overflow:auto;padding:16px"><div style="background:var(--card);max-width:420px;margin:12vh auto 0;border-radius:18px;padding:16px;display:grid;gap:10px">
@@ -284,6 +313,7 @@ nav.many button{font-size:11px}
 </style>
 <nav>
   <button data-go="home" class="on"><svg width="24" height="24"><use href="#i-list"/></svg>الحضرات</button>
+  <button data-go="mq" id="nav-mq"><svg width="24" height="24"><use href="#i-mq"/></svg>المقامات</button>
   <button data-go="db" id="nav-db" hidden><svg width="24" height="24"><use href="#i-db"/></svg>قاعدة البيانات</button>
   <button data-go="mw" id="nav-mw" hidden><svg width="24" height="24"><use href="#i-cal"/></svg>المناسبات</button>
   <button data-go="admin" id="nav-admin" hidden><svg width="24" height="24"><use href="#i-shield"/></svg>الإشراف</button>
@@ -339,6 +369,7 @@ function refreshChips(){dayChips($('#listDays'),d=>{dayF=d;refreshChips();render
 function go(p){
   if((p==='db'&&!CAN_DB)||(p==='admin'&&!ADMIN)||(p==='mw'&&!CAN_MW))return;
   if(p==='mw')loadMw();
+  if(p==='mq')loadMq();
   if(p==='db'&&CAN_DB)renderDb();
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===p));
@@ -360,6 +391,45 @@ $('#shareApp').href='https://wa.me/?text='+encodeURIComponent('دليل قطاع
 refreshChips();renderAll();
 
 
+// ===== المقامات =====
+const MQK={wali:'ولي',sahabi:'صحابي',ahl_bayt:'من آل البيت'};
+const GOVS=['القاهرة','الجيزة','الإسكندرية','القليوبية','الشرقية','الدقهلية','الغربية','المنوفية','كفر الشيخ','البحيرة','دمياط','بورسعيد','الإسماعيلية','السويس','شمال سيناء','جنوب سيناء','الفيوم','بني سويف','المنيا','أسيوط','سوهاج','قنا','الأقصر','أسوان','البحر الأحمر','الوادي الجديد','مطروح'];
+let maq=[],mqK='',mqEd=null,mqErr='';
+$('#mq-gov').innerHTML=GOVS.map(g=>`<option>${g}</option>`).join('');
+async function loadMq(){if(!sb)return;const {data,error}=await sb.from('maqamat').select('*').order('name');
+  if(error){mqErr='تعذر تحميل المقامات. تأكد من تشغيل maqamat.sql في Supabase.';maq=[]}else{mqErr='';maq=data||[]}renderMq()}
+function mqList(){const k=norm($('#mqq').value||''),g=$('#mqg').value;
+  return maq.filter(m=>(!mqK||m.kind===mqK)&&(!g||m.governorate===g)&&(!k||norm([m.name,m.lineage,m.governorate,m.bio,m.address].join(' ')).includes(k)))}
+function renderMq(){const box=$('#mqList');if(!box)return;
+  [['',''],['wali','1'],['sahabi','2'],['ahl_bayt','3']].forEach(([k,i])=>{$('#mq-c'+(i||0)).textContent=ar(k?maq.filter(m=>m.kind===k).length:maq.length)});
+  const gs=[...new Set(maq.map(m=>m.governorate).filter(Boolean))].sort((a,b)=>GOVS.indexOf(a)-GOVS.indexOf(b)),cur=$('#mqg').value;
+  $('#mqg').innerHTML='<option value="">كل المحافظات</option>'+gs.map(g=>`<option ${g===cur?'selected':''}>${esc(g)}</option>`).join('');
+  document.querySelectorAll('[data-mqk]').forEach(b=>b.classList.toggle('on',b.dataset.mqk===mqK));
+  if(mqErr){box.innerHTML=`<div class="note">${mqErr}</div>`;$('#mqn').textContent='';return}
+  const L=mqList();$('#mqn').textContent=maq.length?`${ar(L.length)} مقام`:'';
+  box.innerHTML=L.length?L.map(m=>{
+    const mp=m.map_url?`<a class="btn" style="width:auto;display:inline-flex;margin:0;padding:8px 14px;text-decoration:none" href="${esc(m.map_url)}" target="_blank" rel="noopener">📍 موقع المقام في خرائط جوجل</a>`:'';
+    const row=(l,v)=>v?`<div class="row"><b>${l}:</b> ${esc(v)}</div>`:'';
+    return `<article class="card"><h3>${esc(m.name)}</h3><div class="badges"><span class="b t">${MQK[m.kind]||''}</span>${m.governorate?`<span class="b">${esc(m.governorate)}</span>`:''}</div>
+    ${row('النسب',m.lineage)}${row('المولد',m.birth)}${row('الانتقال',m.death)}${row('المكان',m.address)}
+    ${m.bio?`<details style="margin-top:6px"><summary class="b" style="cursor:pointer;display:inline-block">نبذة عن حياته</summary><div class="mqbio">${esc(m.bio)}</div></details>`:''}
+    <div class="acts" style="margin-top:10px">${mp}${ADMIN?`<button data-mqe="${m.id}">تعديل</button>`:''}</div></article>`}).join(''):`<div class="empty">${maq.length?'لا توجد نتائج':'لم تُضف مقامات بعد.'}</div>`}
+document.addEventListener('click',e=>{const c=e.target.closest('[data-mqk]');if(c){mqK=c.dataset.mqk;renderMq();return}
+  const ed=e.target.closest('[data-mqe]');if(ed)openMq(maq.find(m=>m.id==ed.dataset.mqe))});
+$('#mqq').addEventListener('input',renderMq);$('#mqg').addEventListener('change',renderMq);
+function openMq(m){mqEd=m||null;$('#mqt').textContent=m?'تعديل مقام':'إضافة مقام';$('#mq-name').value=m?.name||'';$('#mq-kind').value=m?.kind||'wali';$('#mq-gov').value=m?.governorate||GOVS[0];
+  $('#mq-lin').value=m?.lineage||'';$('#mq-birth').value=m?.birth||'';$('#mq-death').value=m?.death||'';$('#mq-bio').value=m?.bio||'';$('#mq-addr').value=m?.address||'';$('#mq-map').value=m?.map_url||'';
+  $('#mq-msg').hidden=true;$('#mq-del').hidden=!m;$('#mqed').hidden=false}
+$('#mqAdd').onclick=()=>openMq(null);$('#mq-cancel').onclick=()=>{$('#mqed').hidden=true};
+$('#mqf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;const say=s=>{const x=$('#mq-msg');x.textContent=s;x.hidden=false};
+  const mu=$('#mq-map').value.trim();if(mu&&!/^https?:\/\//i.test(mu))return say('رابط الموقع يجب أن يبدأ بـ https://');
+  const row={name:$('#mq-name').value.trim(),kind:$('#mq-kind').value,governorate:$('#mq-gov').value,lineage:$('#mq-lin').value.trim()||null,birth:$('#mq-birth').value.trim()||null,death:$('#mq-death').value.trim()||null,bio:$('#mq-bio').value.trim()||null,address:$('#mq-addr').value.trim()||null,map_url:mu||null,updated_at:new Date().toISOString()};
+  if(!row.name)return say('اكتب الاسم.');
+  const r=mqEd?await sb.from('maqamat').update(row).eq('id',mqEd.id):await sb.from('maqamat').insert(row);
+  if(r.error)return say('تعذر الحفظ: '+r.error.message+' (تأكد من تشغيل maqamat.sql)');
+  $('#mqed').hidden=true;loadMq()};
+$('#mq-del').onclick=async()=>{const b=$('#mq-del');if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف';return}
+  b.dataset.armed='';b.textContent='حذف المقام';const {error}=await sb.from('maqamat').delete().eq('id',mqEd.id);if(error){const x=$('#mq-msg');x.textContent='تعذر الحذف: '+error.message;x.hidden=false;return}$('#mqed').hidden=true;loadMq()};
 // ===== خريطة الحضرات =====
 const PIN_TODAY='#1f9d55',PIN_OTHER='#b8860b';let LMAP=null,LLAY=null;
 function loadLeaflet(){return new Promise((ok,no)=>{if(window.L)return ok();const c=document.createElement('link');c.rel='stylesheet';c.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(c);
@@ -487,6 +557,7 @@ function afterApproved(){
   load();if(ADMIN){loadReqs();showPub()}if(CAN_DB)loadPeople();
   if(!booted){booted=true;
     subs.push(sb.channel('hz').on('postgres_changes',{event:'*',schema:'public',table:'hadarat'},()=>load()).subscribe());
+    subs.push(sb.channel('mq').on('postgres_changes',{event:'*',schema:'public',table:'maqamat'},()=>{if(document.querySelector('.page.on')?.id==='p-mq')loadMq()}).subscribe());
     if(!ADMIN&&me)subs.push(sb.channel('hm').on('postgres_changes',{event:'*',schema:'public',table:'profiles',filter:'user_id=eq.'+me.user_id},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'hadra_access'},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'admins'},()=>refresh()).on('postgres_changes',{event:'*',schema:'public',table:'hadra_managers',filter:'user_id=eq.'+me.user_id},()=>refresh()).subscribe());
     if(ADMIN)subs.push(sb.channel('hq').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadReqs()).subscribe())}
   if(CAN_DB&&!subP){subP=sb.channel('hpp').on('postgres_changes',{event:'*',schema:'public',table:'people'},()=>loadPeople()).subscribe();subs.push(subP)}
@@ -577,7 +648,7 @@ function setAccess(){
   if(!CAN_DB){people=[];PM=new Map();DC=new Map();closeSheet()}
   document.querySelector('nav').classList.toggle('many',[...document.querySelectorAll('nav button')].filter(b=>!b.hidden).length>5);
   const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN)||(cur==='p-mw'&&!CAN_MW))go('home');
-  $('#addPerson').hidden=!CAN_PW}
+  $('#addPerson').hidden=!CAN_PW;$('#mqAdd').hidden=!ADMIN;if(typeof renderMq==='function')renderMq()}
 async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
   for(;;){const {data,error}=await sb.from('people').select('*').order('id').range(from,from+999);if(error)return;all=all.concat(data);if(data.length<1000)break;from+=1000}
   people=all;PM=new Map(all.map(p=>[p.id,p]));DC=new Map();all.forEach(p=>{if(p.murshid_id)DC.set(p.murshid_id,(DC.get(p.murshid_id)||0)+1)});
