@@ -112,7 +112,6 @@ nav button.on svg{stroke:var(--gold)}
 <section class="page" id="p-mq">
   <div class="mini"><img src="logo-y.png" alt=""><b>المقامات</b></div>
   <div class="wrap" style="padding-top:14px">
-    <div class="days"><button class="chip on" data-mqk="">الكل<small id="mq-c0"></small></button><button class="chip" data-mqk="wali">الأولياء<small id="mq-c1"></small></button><button class="chip" data-mqk="sahabi">الصحابة<small id="mq-c2"></small></button><button class="chip" data-mqk="ahl_bayt">آل البيت<small id="mq-c3"></small></button></div>
     <div class="search" style="margin:0 0 10px"><input id="mqq" type="search" placeholder="ابحث بالاسم أو النسب أو المحافظة…" aria-label="بحث"></div>
     <select id="mqg" class="in" style="margin:0 0 10px"><option value="">كل المحافظات</option></select>
     <button class="btn" id="mqAdd" hidden style="margin:0 0 10px">＋ إضافة مقام</button>
@@ -178,7 +177,7 @@ nav button.on svg{stroke:var(--gold)}
 <form id="mqf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
 <h2 id="mqt" style="margin:0">إضافة مقام</h2>
 <label>اسم الولي / الصحابي / من آل البيت<input id="mq-name" required></label>
-<div class="two"><label>التصنيف<select id="mq-kind"><option value="wali">ولي</option><option value="sahabi">صحابي</option><option value="ahl_bayt">من آل البيت</option></select></label><label>المحافظة<select id="mq-gov"></select></label></div>
+<label>المحافظة<select id="mq-gov"></select></label>
 <label>النسب<textarea id="mq-lin" rows="2" placeholder="مثال: الحسين بن علي بن أبي طالب"></textarea></label>
 <div class="two"><label>تاريخ المولد<input id="mq-birth" placeholder="مثال: ٣٨ هـ"></label><label>تاريخ الانتقال<input id="mq-death" placeholder="مثال: ٦١ هـ"></label></div>
 <label>نبذة مختصرة عن حياته<textarea id="mq-bio" rows="5"></textarea></label>
@@ -392,38 +391,34 @@ refreshChips();renderAll();
 
 
 // ===== المقامات =====
-const MQK={wali:'ولي',sahabi:'صحابي',ahl_bayt:'من آل البيت'};
 const GOVS=['القاهرة','الجيزة','الإسكندرية','القليوبية','الشرقية','الدقهلية','الغربية','المنوفية','كفر الشيخ','البحيرة','دمياط','بورسعيد','الإسماعيلية','السويس','شمال سيناء','جنوب سيناء','الفيوم','بني سويف','المنيا','أسيوط','سوهاج','قنا','الأقصر','أسوان','البحر الأحمر','الوادي الجديد','مطروح'];
-let maq=[],mqK='',mqEd=null,mqErr='';
+let maq=[],mqEd=null,mqErr='';
 $('#mq-gov').innerHTML=GOVS.map(g=>`<option>${g}</option>`).join('');
 async function loadMq(){if(!sb)return;const {data,error}=await sb.from('maqamat').select('*').order('name');
   if(error){mqErr='تعذر تحميل المقامات. تأكد من تشغيل maqamat.sql في Supabase.';maq=[]}else{mqErr='';maq=data||[]}renderMq()}
 function mqList(){const k=norm($('#mqq').value||''),g=$('#mqg').value;
-  return maq.filter(m=>(!mqK||m.kind===mqK)&&(!g||m.governorate===g)&&(!k||norm([m.name,m.lineage,m.governorate,m.bio,m.address].join(' ')).includes(k)))}
+  return maq.filter(m=>(!g||m.governorate===g)&&(!k||norm([m.name,m.lineage,m.governorate,m.bio,m.address].join(' ')).includes(k)))}
 function renderMq(){const box=$('#mqList');if(!box)return;
-  [['',''],['wali','1'],['sahabi','2'],['ahl_bayt','3']].forEach(([k,i])=>{$('#mq-c'+(i||0)).textContent=ar(k?maq.filter(m=>m.kind===k).length:maq.length)});
   const gs=[...new Set(maq.map(m=>m.governorate).filter(Boolean))].sort((a,b)=>GOVS.indexOf(a)-GOVS.indexOf(b)),cur=$('#mqg').value;
   $('#mqg').innerHTML='<option value="">كل المحافظات</option>'+gs.map(g=>`<option ${g===cur?'selected':''}>${esc(g)}</option>`).join('');
-  document.querySelectorAll('[data-mqk]').forEach(b=>b.classList.toggle('on',b.dataset.mqk===mqK));
   if(mqErr){box.innerHTML=`<div class="note">${mqErr}</div>`;$('#mqn').textContent='';return}
   const L=mqList();$('#mqn').textContent=maq.length?`${ar(L.length)} مقام`:'';
   box.innerHTML=L.length?L.map(m=>{
     const mp=m.map_url?`<a class="btn" style="width:auto;display:inline-flex;margin:0;padding:8px 14px;text-decoration:none" href="${esc(m.map_url)}" target="_blank" rel="noopener">📍 موقع المقام في خرائط جوجل</a>`:'';
     const row=(l,v)=>v?`<div class="row"><b>${l}:</b> ${esc(v)}</div>`:'';
-    return `<article class="card"><h3>${esc(m.name)}</h3><div class="badges"><span class="b t">${MQK[m.kind]||''}</span>${m.governorate?`<span class="b">${esc(m.governorate)}</span>`:''}</div>
+    return `<article class="card"><h3>${esc(m.name)}</h3><div class="badges">${m.governorate?`<span class="b t">${esc(m.governorate)}</span>`:''}</div>
     ${row('النسب',m.lineage)}${row('المولد',m.birth)}${row('الانتقال',m.death)}${row('المكان',m.address)}
     ${m.bio?`<details style="margin-top:6px"><summary class="b" style="cursor:pointer;display:inline-block">نبذة عن حياته</summary><div class="mqbio">${esc(m.bio)}</div></details>`:''}
     <div class="acts" style="margin-top:10px">${mp}${ADMIN?`<button data-mqe="${m.id}">تعديل</button>`:''}</div></article>`}).join(''):`<div class="empty">${maq.length?'لا توجد نتائج':'لم تُضف مقامات بعد.'}</div>`}
-document.addEventListener('click',e=>{const c=e.target.closest('[data-mqk]');if(c){mqK=c.dataset.mqk;renderMq();return}
-  const ed=e.target.closest('[data-mqe]');if(ed)openMq(maq.find(m=>m.id==ed.dataset.mqe))});
+document.addEventListener('click',e=>{const ed=e.target.closest('[data-mqe]');if(ed)openMq(maq.find(m=>m.id==ed.dataset.mqe))});
 $('#mqq').addEventListener('input',renderMq);$('#mqg').addEventListener('change',renderMq);
-function openMq(m){mqEd=m||null;$('#mqt').textContent=m?'تعديل مقام':'إضافة مقام';$('#mq-name').value=m?.name||'';$('#mq-kind').value=m?.kind||'wali';$('#mq-gov').value=m?.governorate||GOVS[0];
+function openMq(m){mqEd=m||null;$('#mqt').textContent=m?'تعديل مقام':'إضافة مقام';$('#mq-name').value=m?.name||'';$('#mq-gov').value=m?.governorate||GOVS[0];
   $('#mq-lin').value=m?.lineage||'';$('#mq-birth').value=m?.birth||'';$('#mq-death').value=m?.death||'';$('#mq-bio').value=m?.bio||'';$('#mq-addr').value=m?.address||'';$('#mq-map').value=m?.map_url||'';
   $('#mq-msg').hidden=true;$('#mq-del').hidden=!m;$('#mqed').hidden=false}
 $('#mqAdd').onclick=()=>openMq(null);$('#mq-cancel').onclick=()=>{$('#mqed').hidden=true};
 $('#mqf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;const say=s=>{const x=$('#mq-msg');x.textContent=s;x.hidden=false};
   const mu=$('#mq-map').value.trim();if(mu&&!/^https?:\/\//i.test(mu))return say('رابط الموقع يجب أن يبدأ بـ https://');
-  const row={name:$('#mq-name').value.trim(),kind:$('#mq-kind').value,governorate:$('#mq-gov').value,lineage:$('#mq-lin').value.trim()||null,birth:$('#mq-birth').value.trim()||null,death:$('#mq-death').value.trim()||null,bio:$('#mq-bio').value.trim()||null,address:$('#mq-addr').value.trim()||null,map_url:mu||null,updated_at:new Date().toISOString()};
+  const row={name:$('#mq-name').value.trim(),governorate:$('#mq-gov').value,lineage:$('#mq-lin').value.trim()||null,birth:$('#mq-birth').value.trim()||null,death:$('#mq-death').value.trim()||null,bio:$('#mq-bio').value.trim()||null,address:$('#mq-addr').value.trim()||null,map_url:mu||null,updated_at:new Date().toISOString()};
   if(!row.name)return say('اكتب الاسم.');
   const r=mqEd?await sb.from('maqamat').update(row).eq('id',mqEd.id):await sb.from('maqamat').insert(row);
   if(r.error)return say('تعذر الحفظ: '+r.error.message+' (تأكد من تشغيل maqamat.sql)');
