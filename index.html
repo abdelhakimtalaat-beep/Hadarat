@@ -147,6 +147,22 @@ nav button.on svg{stroke:var(--gold)}
   </div>
 </section>
 
+<section class="page" id="p-kr">
+  <div class="mini"><img src="logo-y.png" alt=""><b>جمعية الكرام</b></div>
+  <div class="wrap" style="padding-top:14px">
+    <div class="days"><button class="chip on" data-krv="m">الأعضاء<small id="krc1"></small></button><button class="chip" data-krv="b">مجلس الإدارة<small id="krc2"></small></button></div>
+    <div id="krMem">
+      <div class="search" style="margin:0 0 10px"><input id="krq" type="search" placeholder="ابحث بالاسم أو رقم العضوية…" aria-label="بحث"></div>
+      <button class="btn" id="krAdd" style="margin:0 0 10px">＋ إضافة عضو</button>
+      <p class="small" id="krn"></p><div id="krList"></div><button class="btn o" id="krMore" hidden>عرض المزيد</button>
+    </div>
+    <div id="krBrd" hidden>
+      <button class="btn" id="kbAdd" style="margin:0 0 10px">＋ إضافة عضو مجلس</button>
+      <div id="kbList"></div>
+    </div>
+  </div>
+</section>
+
 <section class="page" id="p-admin">
   <div class="mini"><img src="logo-y.png" alt=""><b>الإشراف</b></div>
   <div class="wrap" style="padding-top:14px">
@@ -193,6 +209,35 @@ nav button.on svg{stroke:var(--gold)}
 <button class="btn o" type="button" id="mq-cancel">إلغاء</button>
 </form></div>
 <style>#mqf label{display:grid;gap:4px;font-weight:600;font-size:15px}#mqf input,#mqf select,#mqf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#mqf input:focus,#mqf select:focus,#mqf textarea:focus{outline:none;border-color:var(--gold)}.mqpre{font-size:.62em;font-weight:600;opacity:.8;white-space:nowrap}.mqpin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);background:#1f6f4a}.mqbio{white-space:pre-line;line-height:1.8;margin-top:6px}</style>
+<div id="krm" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
+<form id="krf" class="kf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
+<h2 id="krt" style="margin:0">إضافة عضو</h2>
+<div id="kr-pk"><label>اختيار من قاعدة البيانات (اتركه فارغًا لعضو جديد)<input id="kr-ps" type="search" placeholder="اكتب جزءًا من الاسم…" autocomplete="off"></label><div id="kr-pr" class="kpr"></div></div>
+<div id="kr-sel" class="note" hidden></div>
+<div class="two"><label>رقم العضوية<input id="kr-no" type="number" inputmode="numeric" required></label><label>آخر عام لسداد الاشتراك<input id="kr-paid" type="number" inputmode="numeric" placeholder="مثال: ٢٠٢٥"></label></div>
+<label>تاريخ الالتحاق<input id="kr-join" type="date"></label>
+<label>الاسم<input id="kr-name" required></label>
+<label>الموبايل<input id="kr-phone" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"></label>
+<div id="kr-msg" class="note" hidden></div>
+<button class="btn" type="submit">حفظ</button>
+<button class="btn o" type="button" id="kr-del" hidden>حذف العضو</button>
+<button class="btn o" type="button" id="kr-cancel">إلغاء</button>
+</form></div>
+<div id="kbm" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
+<form id="kbf" class="kf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
+<h2 id="kbt" style="margin:0">إضافة عضو مجلس</h2>
+<div><label>ربط بقاعدة البيانات<input id="kb-ps" type="search" placeholder="اكتب جزءًا من الاسم…" autocomplete="off"></label><div id="kb-pr" class="kpr"></div></div>
+<div id="kb-sel" class="note" hidden></div>
+<label>الاسم<input id="kb-name" required></label>
+<div class="two"><label>الوظيفة داخل المجلس<input id="kb-ri" placeholder="مثال: أمين الصندوق"></label><label>الوظيفة خارج المجلس<input id="kb-ro"></label></div>
+<div class="two"><label>الموبايل<input id="kb-phone" dir="ltr" inputmode="tel"></label><label>الجنسية<input id="kb-nat"></label></div>
+<div class="two"><label>الرقم القومي<input id="kb-nid" dir="ltr" inputmode="numeric"></label><label>الترتيب<input id="kb-sort" type="number" inputmode="numeric"></label></div>
+<div id="kb-msg" class="note" hidden></div>
+<button class="btn" type="submit">حفظ</button>
+<button class="btn o" type="button" id="kb-del" hidden>حذف</button>
+<button class="btn o" type="button" id="kb-cancel">إلغاء</button>
+</form></div>
+<style>.kf label{display:grid;gap:4px;font-weight:600;font-size:15px}.kf input,.kf select{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}.kf input:focus{outline:none;border-color:var(--gold)}.kf input:disabled{opacity:.7}.kpr{display:grid;gap:4px;margin-top:4px}.kpr button{text-align:start;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:10px;padding:8px 10px;font:inherit}.kpr small{color:var(--mu)}</style>
 <div id="crop" hidden><div class="cbox"><b>اضبط الصورة</b><div class="small">اسحب الصورة لتحريكها، وكبّر وصغّر بالإصبعين أو بالشريط</div>
 <div id="cf"></div><input id="cz" type="range" min="1" max="4" step="0.01" value="1" style="width:100%"><div class="two"><button class="btn o" type="button" id="crot">تدوير ↻</button><button class="btn o" type="button" id="cno">إلغاء</button></div><button class="btn" type="button" id="cok">تم</button></div></div>
 <div id="ex" hidden style="position:fixed;inset:0;z-index:2400;background:rgba(0,0,0,.6);overflow:auto;padding:16px"><div style="background:var(--card);max-width:420px;margin:12vh auto 0;border-radius:18px;padding:16px;display:grid;gap:10px">
@@ -319,6 +364,7 @@ nav.many button{font-size:11px}
   <button data-go="mq" id="nav-mq"><svg width="24" height="24"><use href="#i-mq"/></svg>المقامات</button>
   <button data-go="db" id="nav-db" hidden><svg width="24" height="24"><use href="#i-db"/></svg>قاعدة البيانات</button>
   <button data-go="mw" id="nav-mw" hidden><svg width="24" height="24"><use href="#i-cal"/></svg>المناسبات</button>
+  <button data-go="kr" id="nav-kr" hidden><svg width="24" height="24"><use href="#i-user"/></svg>جمعية الكرام</button>
   <button data-go="admin" id="nav-admin" hidden><svg width="24" height="24"><use href="#i-shield"/></svg>الإشراف</button>
   <button data-go="more"><svg width="24" height="24"><use href="#i-more"/></svg>المزيد</button>
 </nav>
@@ -370,9 +416,10 @@ function dayChips(el,onPick,withAll){
 }
 function refreshChips(){dayChips($('#listDays'),d=>{dayF=d;refreshChips();renderAll()},true)}
 function go(p){
-  if((p==='db'&&!CAN_DB)||(p==='admin'&&!ADMIN)||(p==='mw'&&!CAN_MW))return;
+  if((p==='db'&&!CAN_DB)||(p==='admin'&&!ADMIN)||(p==='kr'&&!ADMIN)||(p==='mw'&&!CAN_MW))return;
   if(p==='mw')loadMw();
   if(p==='mq')loadMq();
+  if(p==='kr')loadKr();
   if(p==='db'&&CAN_DB)renderDb();
   document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.id==='p-'+p));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.go===p));
@@ -445,6 +492,79 @@ $('#mqf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;const say=
   $('#mqed').hidden=true;loadMq()};
 $('#mq-del').onclick=async()=>{const b=$('#mq-del');if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف';return}
   b.dataset.armed='';b.textContent='حذف المقام';const {error}=await sb.from('maqamat').delete().eq('id',mqEd.id);if(error){const x=$('#mq-msg');x.textContent='تعذر الحذف: '+error.message;x.hidden=false;return}$('#mqed').hidden=true;loadMq()};
+// ===== جمعية الكرام =====
+let krm=[],krb=[],krv='m',krShown=60,krErr='',krEd=null,kbEd=null,krP=null,kbP=null;
+async function loadKr(){if(!sb||!ADMIN)return;
+  const a=await sb.from('karam_members').select('*').order('member_no'),b=await sb.from('karam_board').select('*').order('sort');
+  if(a.error||b.error){krErr='تعذر تحميل البيانات. تأكد من تشغيل karam.sql في Supabase.';krm=[];krb=[]}else{krErr='';krm=a.data||[];krb=b.data||[]}renderKr()}
+const krPer=m=>m.person_id?PM.get(m.person_id):null;
+const krDisp=m=>{const p=krPer(m);return {name:p?p.name:m.name,phone:p?p.phone||m.phone||'':m.phone||'',p}};
+function krMemCard(m){const d=krDisp(m),p=d.p,ok=phoneOK(d.phone||'');
+  return `<article class="card"><h3>${p?`<a class="lk" data-person="${p.id}">${esc(d.name)}</a>`:esc(d.name)}</h3>
+  <div class="badges"><span class="b t">عضوية رقم ${ar(m.member_no)}</span>${p?'':'<span class="b w">غير مرتبط بقاعدة البيانات</span>'}</div>
+  ${p&&hName(p)?`<div class="row">${ic('home')}<span>${hLink(p)}</span></div>`:''}
+  <div class="row">${ic('phone')}<span>${d.phone?`<bdi dir="ltr">${esc(d.phone)}</bdi>`:'—'}</span></div>
+  <div class="row"><b>تاريخ الالتحاق:</b> ${m.join_date?esc(dt(m.join_date)):'—'}</div>
+  <div class="row"><b>آخر عام لسداد الاشتراك:</b> ${m.last_paid_year?esc(ar(m.last_paid_year)):'—'}</div>
+  <div class="acts">${ok?`<a class="call" href="tel:${d.phone}">${ic('phone')}اتصال</a>`:''}<button data-kre="${m.id}">${ic('user')}تعديل</button></div></article>`}
+function krBrdCard(b){const p=b.person_id?PM.get(b.person_id):null,ph=(p&&p.phone)||b.phone||'',ok=phoneOK(ph);
+  const row=(l,v)=>v?`<div class="row"><b>${l}:</b> ${esc(v)}</div>`:'';
+  return `<article class="card"><h3>${p?`<a class="lk" data-person="${p.id}">${esc(p.name)}</a>`:esc(b.name)}</h3>
+  <div class="badges">${b.role_in?`<span class="b t">${esc(b.role_in)}</span>`:''}${p?'':'<span class="b w">غير مرتبط بقاعدة البيانات</span>'}</div>
+  ${row('الوظيفة خارج المجلس',b.role_out)}${row('الجنسية',b.nationality)}${row('الرقم القومي',b.national_id)}
+  <div class="row">${ic('phone')}<span>${ph?`<bdi dir="ltr">${esc(ph)}</bdi>`:'—'}</span></div>
+  <div class="acts">${ok?`<a class="call" href="tel:${ph}">${ic('phone')}اتصال</a>`:''}<button data-kbe="${b.id}">${ic('user')}تعديل</button></div></article>`}
+function renderKr(){if(!$('#krList'))return;document.querySelectorAll('[data-krv]').forEach(b=>b.classList.toggle('on',b.dataset.krv===krv));
+  $('#krMem').hidden=krv!=='m';$('#krBrd').hidden=krv!=='b';$('#krc1').textContent=krm.length?ar(krm.length):'';$('#krc2').textContent=krb.length?ar(krb.length):'';
+  if(krErr){$('#krList').innerHTML=`<div class="note">${krErr}</div>`;$('#kbList').innerHTML='';$('#krn').textContent='';return}
+  const k=norm($('#krq').value||''),L=krm.filter(m=>!k||norm([krDisp(m).name,m.member_no,krDisp(m).phone].join(' ')).includes(k));
+  const lk=krm.filter(m=>m.person_id).length;
+  $('#krn').textContent=krm.length?`${ar(L.length)} عضو — منهم ${ar(lk)} مرتبط بقاعدة البيانات و${ar(krm.length-lk)} غير مرتبط`:'';
+  $('#krList').innerHTML=L.length?L.slice(0,krShown).map(krMemCard).join(''):`<div class="empty">${krm.length?'لا توجد نتائج':'لم يُضف أعضاء بعد.'}</div>`;
+  $('#krMore').hidden=L.length<=krShown;$('#krMore').textContent=`عرض المزيد (${ar(L.length-krShown)})`;
+  $('#kbList').innerHTML=krb.length?krb.map(krBrdCard).join(''):'<div class="empty">لم يُضف أعضاء مجلس بعد.</div>'}
+document.addEventListener('click',e=>{const c=e.target.closest('[data-krv]');if(c){krv=c.dataset.krv;renderKr();return}
+  const a=e.target.closest('[data-kre]');if(a)return openKr(krm.find(m=>m.id==a.dataset.kre));
+  const b=e.target.closest('[data-kbe]');if(b)openKb(krb.find(x=>x.id==b.dataset.kbe))});
+$('#krq').addEventListener('input',()=>{krShown=60;renderKr()});$('#krMore').onclick=()=>{krShown+=60;renderKr()};
+// اختيار شخص من قاعدة البيانات
+function krPick(inp,box,onSel){inp.oninput=()=>{const k=norm(inp.value.trim());if(!k){box.innerHTML='';return}
+  const r=people.filter(p=>norm(p.name).includes(k)).slice(0,8);
+  box.innerHTML=r.length?r.map(p=>`<button type="button" data-pk="${p.id}">${esc(p.name)}<br><small>${esc(hName(p)||'بلا حضرة')}${p.phone?' · '+esc(p.phone):''}</small></button>`).join(''):'<div class="small">لا يوجد في قاعدة البيانات</div>';
+  box.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{onSel(PM.get(+b.dataset.pk));box.innerHTML='';inp.value=''})}}
+function krSelNote(el,p,pre){if(!p){el.hidden=true;return}el.hidden=false;el.innerHTML=`<b>مرتبط بقاعدة البيانات:</b> ${esc(p.name)}<br><span class="small">${esc(hName(p)||'بلا حضرة')}${p.phone?' · '+esc(p.phone):''}</span> <a class="lk" data-${pre}clr="1">إلغاء الربط</a>`}
+// --- الأعضاء ---
+function krApply(){const p=krP,dis=!!p;$('#kr-name').disabled=dis;$('#kr-phone').disabled=dis;if(p){$('#kr-name').value=p.name;$('#kr-phone').value=p.phone||''}krSelNote($('#kr-sel'),p,'kr')}
+function openKr(m){krEd=m||null;krP=m&&m.person_id?PM.get(m.person_id)||null:null;$('#krt').textContent=m?'تعديل بيانات عضو':'إضافة عضو';
+  $('#kr-no').value=m?m.member_no:(krm.reduce((a,x)=>Math.max(a,x.member_no),0)+1);$('#kr-paid').value=m?.last_paid_year??'';$('#kr-join').value=m?.join_date||'';
+  $('#kr-name').value=m?.name||'';$('#kr-phone').value=m?.phone||'';$('#kr-ps').value='';$('#kr-pr').innerHTML='';krApply();
+  $('#kr-msg').hidden=true;$('#kr-del').hidden=!m;$('#krm').hidden=false}
+krPick($('#kr-ps'),$('#kr-pr'),p=>{krP=p;krApply()});
+document.addEventListener('click',e=>{if(e.target.closest('[data-krclr]')){krP=null;krApply()}if(e.target.closest('[data-kbclr]')){kbP=null;kbApply()}});
+$('#krAdd').onclick=()=>openKr(null);$('#kr-cancel').onclick=()=>{$('#krm').hidden=true};
+$('#krf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;const say=s=>{const x=$('#kr-msg');x.textContent=s;x.hidden=false};
+  const ph=$('#kr-phone').value.trim(),nm=$('#kr-name').value.trim();if(!nm)return say('اكتب الاسم.');if(ph&&!phoneOK(ph)&&!krP)return say('رقم الموبايل غير صحيح.');
+  const py=$('#kr-paid').value.trim(),row={member_no:+$('#kr-no').value,person_id:krP?krP.id:null,name:krP?krP.name:nm,phone:krP?null:(ph||null),join_date:$('#kr-join').value||null,last_paid_year:py?+py:null,updated_at:new Date().toISOString()};
+  if(!row.member_no)return say('اكتب رقم العضوية.');
+  const r=krEd?await sb.from('karam_members').update(row).eq('id',krEd.id):await sb.from('karam_members').insert(row);
+  if(r.error)return say(r.error.code==='23505'?'رقم العضوية مستخدم لعضو آخر.':'تعذر الحفظ: '+r.error.message);
+  $('#krm').hidden=true;loadKr()};
+$('#kr-del').onclick=async()=>{const b=$('#kr-del');if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف';return}
+  b.dataset.armed='';b.textContent='حذف العضو';const {error}=await sb.from('karam_members').delete().eq('id',krEd.id);if(error){const x=$('#kr-msg');x.textContent='تعذر الحذف: '+error.message;x.hidden=false;return}$('#krm').hidden=true;loadKr()};
+// --- مجلس الإدارة ---
+function kbApply(){const p=kbP;if(p){$('#kb-name').value=p.name;if(p.phone)$('#kb-phone').value=p.phone}$('#kb-name').disabled=!!p;krSelNote($('#kb-sel'),p,'kb')}
+function openKb(b){kbEd=b||null;kbP=b&&b.person_id?PM.get(b.person_id)||null:null;$('#kbt').textContent=b?'تعديل عضو مجلس':'إضافة عضو مجلس';
+  $('#kb-name').value=b?.name||'';$('#kb-ri').value=b?.role_in||'';$('#kb-ro').value=b?.role_out||'';$('#kb-phone').value=b?.phone||'';$('#kb-nat').value=b?(b.nationality||''):'مصري';$('#kb-nid').value=b?.national_id||'';
+  $('#kb-sort').value=b?b.sort:(krb.reduce((a,x)=>Math.max(a,x.sort),0)+1);$('#kb-ps').value='';$('#kb-pr').innerHTML='';kbApply();$('#kb-msg').hidden=true;$('#kb-del').hidden=!b;$('#kbm').hidden=false}
+krPick($('#kb-ps'),$('#kb-pr'),p=>{kbP=p;kbApply()});
+$('#kbAdd').onclick=()=>openKb(null);$('#kb-cancel').onclick=()=>{$('#kbm').hidden=true};
+$('#kbf').onsubmit=async e=>{e.preventDefault();if(!sb||!ADMIN)return;const say=s=>{const x=$('#kb-msg');x.textContent=s;x.hidden=false};
+  const nm=(kbP?kbP.name:$('#kb-name').value.trim());if(!nm)return say('اكتب الاسم.');
+  const T=id=>$(id).value.trim()||null,row={name:nm,person_id:kbP?kbP.id:null,role_in:T('#kb-ri'),role_out:T('#kb-ro'),phone:T('#kb-phone'),nationality:T('#kb-nat'),national_id:T('#kb-nid'),sort:+$('#kb-sort').value||0,updated_at:new Date().toISOString()};
+  const r=kbEd?await sb.from('karam_board').update(row).eq('id',kbEd.id):await sb.from('karam_board').insert(row);
+  if(r.error)return say('تعذر الحفظ: '+r.error.message);$('#kbm').hidden=true;loadKr()};
+$('#kb-del').onclick=async()=>{const b=$('#kb-del');if(b.dataset.armed!=='1'){b.dataset.armed='1';b.textContent='اضغط مرة أخرى لتأكيد الحذف';return}
+  b.dataset.armed='';b.textContent='حذف';const {error}=await sb.from('karam_board').delete().eq('id',kbEd.id);if(error){const x=$('#kb-msg');x.textContent='تعذر الحذف: '+error.message;x.hidden=false;return}$('#kbm').hidden=true;loadKr()};
 // ===== خريطة الحضرات =====
 const PIN_TODAY='#1f9d55',PIN_OTHER='#b8860b';let LMAP=null,LLAY=null;
 function loadLeaflet(){return new Promise((ok,no)=>{if(window.L)return ok();const c=document.createElement('link');c.rel='stylesheet';c.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(c);
@@ -659,15 +779,15 @@ function withGroups(a,render,key,all){all=all||a;let out='',kk=false,nn=false;co
   for(const p of a){if(key==='age'){if(!kk&&isKid(p)){kk=true;out+=`<div class="grp">${KIDH} · ${ar(kn)}</div>`}if(!nn&&!p.birth_date){nn=true;out+=`<div class="grp">${NOBH} · ${ar(nd)}</div>`}}out+=render(p)}return out}
 function setAccess(){
   CAN_DB=!!(ADMIN||(me&&me.status==='approved'&&PERM.role!=='none'));CAN_MW=CAN_DB;CAN_PW=!!(ADMIN||(CAN_DB&&PERM.level==='edit'));$('#nav-mw').hidden=!CAN_MW;
-  $('#nav-db').hidden=!CAN_DB;$('#nav-admin').hidden=!ADMIN;$('#adminBox').hidden=!ADMIN;
+  $('#nav-db').hidden=!CAN_DB;$('#nav-admin').hidden=!ADMIN;$('#nav-kr').hidden=!ADMIN;$('#adminBox').hidden=!ADMIN;
   if(!CAN_DB){people=[];PM=new Map();DC=new Map();closeSheet()}
   document.querySelector('nav').classList.toggle('many',[...document.querySelectorAll('nav button')].filter(b=>!b.hidden).length>5);
-  const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN)||(cur==='p-mw'&&!CAN_MW))go('home');
+  const cur=document.querySelector('.page.on')?.id;if((cur==='p-db'&&!CAN_DB)||(cur==='p-admin'&&!ADMIN)||(cur==='p-kr'&&!ADMIN)||(cur==='p-mw'&&!CAN_MW))go('home');
   $('#addPerson').hidden=!CAN_PW;$('#mqAdd').hidden=!ADMIN;if(typeof renderMq==='function')renderMq()}
 async function loadPeople(){if(!CAN_DB||!sb)return;let all=[],from=0;
   for(;;){const {data,error}=await sb.from('people').select('*').order('id').range(from,from+999);if(error)return;all=all.concat(data);if(data.length<1000)break;from+=1000}
   people=all;PM=new Map(all.map(p=>[p.id,p]));DC=new Map();all.forEach(p=>{if(p.murshid_id)DC.set(p.murshid_id,(DC.get(p.murshid_id)||0)+1)});
-  dbHadraOpts();dbSecOpts();renderDb();if(!$('#sh').hidden)renderSheet()}
+  dbHadraOpts();dbSecOpts();renderDb();if(typeof renderKr==='function')renderKr();if(!$('#sh').hidden)renderSheet()}
 function dbSecOpts(){const s=$('#dbsec'),c=new Map();people.forEach(p=>{if(p.sector_no)c.set(p.sector_no,(c.get(p.sector_no)||0)+1)});const none=people.filter(p=>!p.sector_no).length;
   s.innerHTML='<option value="">كل القطاعات</option>'+[...c.keys()].sort((a,b)=>a.localeCompare(b,'ar',{numeric:true})).map(k=>`<option value="${esc(k)}">قطاع ${esc(ar(k))} (${ar(c.get(k))})</option>`).join('')+(none?`<option value="none">بلا قطاع (${ar(none)})</option>`:'');if(dbsec!==''&&dbsec!=='none'&&!c.has(dbsec))dbsec='';s.value=dbsec}
 function dbHadraOpts(){const s=$('#dbh'),v=dbh;const cn=new Map();people.forEach(p=>cn.set(p.hadra_id||0,(cn.get(p.hadra_id||0)||0)+1));
