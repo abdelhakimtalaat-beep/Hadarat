@@ -218,7 +218,7 @@ nav button.on svg{stroke:var(--gold)}
 <button class="btn o" type="button" id="mq-del" hidden>حذف المقام</button>
 <button class="btn o" type="button" id="mq-cancel">إلغاء</button>
 </form></div>
-<style>#mqf label{display:grid;gap:4px;font-weight:600;font-size:15px}#mqf input,#mqf select,#mqf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#mqf input:focus,#mqf select:focus,#mqf textarea:focus{outline:none;border-color:var(--gold)}.mqpre{font-size:.62em;font-weight:600;opacity:.8;white-space:nowrap}.mqpin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);background:#1f6f4a}.mqbio{white-space:pre-line;line-height:1.8;margin-top:6px}</style>
+<style>#mqf label{display:grid;gap:4px;font-weight:600;font-size:15px}#mqf input,#mqf select,#mqf textarea{font:inherit;padding:10px;border:2px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}#mqf input:focus,#mqf select:focus,#mqf textarea:focus{outline:none;border-color:var(--gold)}.mqpre{font-size:.62em;font-weight:600;opacity:.8;white-space:nowrap}.mqpin.big{width:36px;height:36px;border:4px solid #fff;box-shadow:0 0 0 4px #f1c40f,0 3px 8px rgba(0,0,0,.6)}.mqpin{display:block;width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.55);background:#1f6f4a}.mqbio{white-space:pre-line;line-height:1.8;margin-top:6px}</style>
 <div id="krm" hidden style="position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.55);overflow:auto;padding:16px">
 <form id="krf" class="kf" style="background:var(--card);color:var(--tx);max-width:520px;margin:0 auto;border-radius:18px;padding:16px;display:grid;gap:10px">
 <h2 id="krt" style="margin:0">إضافة عضو</h2>
@@ -467,8 +467,8 @@ async function drawMq(){const box=$('#mqMap');if(!box||!$('#p-mq').classList.con
   if(!MQM){MQM=L.map('mqMap').setView([28.0,30.8],6);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(MQM);MQL=L.layerGroup().addTo(MQM)}
   MQL.clearLayers();const pts=[];let nl=0;
   mqList().forEach(m=>{const [la,lo]=mqLL(m);if(la==null){nl++;return}
-    const ic=L.divIcon({className:'',html:'<span class="mqpin"></span>',iconSize:[26,26],iconAnchor:[13,26]});
-    const mk=L.marker([la,lo],{icon:ic,title:mqTxt(m)}).addTo(MQL);mk.bindTooltip(mqTxt(m),{direction:'top',offset:[0,-24]});
+    const bg=mqPin(m),ic=L.divIcon({className:'',html:`<span class="mqpin${bg?' big':''}"></span>`,iconSize:bg?[36,36]:[26,26],iconAnchor:bg?[18,36]:[13,26]});
+    const mk=L.marker([la,lo],{icon:ic,title:mqTxt(m),zIndexOffset:mqPin(m)?1000:0}).addTo(MQL);mk.bindTooltip(mqTxt(m),{direction:'top',offset:[0,-24]});
     mk.on('click',()=>{const u=m.map_url||`https://www.google.com/maps/search/?api=1&query=${la},${lo}`;window.open(u,'_blank','noopener')});pts.push([la,lo])});
   if(pts.length)MQM.fitBounds(pts,{padding:[30,30],maxZoom:12});
   $('#mqMapNote').textContent=nl?`${ar(nl)} مقام بلا موقع على الخريطة (راجع الرابط في بطاقته).`:'';setTimeout(()=>MQM.invalidateSize(),100)}
