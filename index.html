@@ -494,8 +494,9 @@ const mqWhen=e=>e.days===0?(e.exact?'اليوم':'هذا الشهر'):e.days===1
 function renderMqNext(){const el=$('#mqNext');if(!el)return;const E=mqEvents();if(!E.length){el.hidden=true;return}
   const l=e=>`${esc(mqTxt(e.m))} — ${e.kind==='مولد'?'المولد':'الرجبية'}: ${esc(e.label)} (${mqWhen(e)})`;
   el.innerHTML=`<div style="font-size:1.1em">المولد القادم: ${l(E[0])}</div>`+(E.length>1?`<div style="font-size:.88em;font-weight:600">ثم: ${E.slice(1,5).map(l).join(' &nbsp;•&nbsp; ')}</div>`:'');el.hidden=false}
+const mqPin=m=>norm(m.name||'').includes(norm('مختار علي محمد'))?1:0;
 function mqList(){const k=norm($('#mqq').value||''),g=$('#mqg').value;
-  return maq.filter(m=>(!g||m.governorate===g)&&(!k||norm([m.name,m.lineage,m.governorate,m.bio,m.address].join(' ')).includes(k))).sort((a,b)=>{const so=$('#mqs')?$('#mqs').value:'death';if(so!=='death'){const kk=so==='mawlid'?'g':'h',x=mqNextDays(a,kk),y=mqNextDays(b,kk);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return x-y}
+  return maq.filter(m=>(!g||m.governorate===g)&&(!k||norm([m.name,m.lineage,m.governorate,m.bio,m.address].join(' ')).includes(k))).sort((a,b)=>{const pa=mqPin(a),pb=mqPin(b);if(pa!==pb)return pb-pa;const so=$('#mqs')?$('#mqs').value:'death';if(so!=='death'){const kk=so==='mawlid'?'g':'h',x=mqNextDays(a,kk),y=mqNextDays(b,kk);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return x-y}
     const x=mqYr(a.death),y=mqYr(b.death);return x==null&&y==null?0:x==null?1:y==null?-1:y-x})}
 function renderMq(){const box=$('#mqList');if(!box)return;
   const gs=[...new Set(maq.map(m=>m.governorate).filter(Boolean))].sort((a,b)=>GOVS.indexOf(a)-GOVS.indexOf(b)),cur=$('#mqg').value;
